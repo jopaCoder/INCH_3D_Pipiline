@@ -1,0 +1,359 @@
+import os
+import bpy
+import shutil
+
+from bpy.types import Operator
+from bpy.props import BoolProperty, IntProperty, StringProperty, EnumProperty
+
+from . import project_operations
+
+
+class INCH_PIPILINE_OT_dummy(Operator):
+    """Detailed descroption"""
+
+    bl_label = "Dummy"
+    bl_idname = "inch.dummy"
+
+    message: StringProperty(default='Pish!')
+
+    def execute(self, context):
+        print(self.message)
+
+        return {'FINISHED'}
+
+#region catalog
+class INCH_PIPILINE_OT_copy_folder_path(Operator):
+    """Detailed descroption"""
+
+    bl_label = "Copy folder path"
+    bl_idname = "inch.copy_folder_path"
+
+    def execute(self, context):
+        path = bpy.context.scene.inch_current_folder.local_path
+
+        command = 'echo ' + path.strip() + '| clip'
+        os.system(command)
+
+        return {'FINISHED'}
+
+
+class INCH_PIPILINE_OT_open_folder(Operator):
+    """Detailed descroption"""
+
+    bl_label = "Open folder"
+    bl_idname = "inch.open_folder"
+
+    message: StringProperty(default='Pish!')
+
+    def execute(self, context):
+        path = bpy.context.scene.inch_current_folder.local_path
+        os.startfile(path)
+
+        return {'FINISHED'}
+
+
+class INCH_PIPILINE_OT_generate_sub_catalog(Operator):
+    """Detailed descroption"""
+
+    bl_label = "Generate sub-catalog"
+    bl_idname = "inch.generate_sub_catalog"
+
+    lvl: IntProperty()
+
+    def execute(self, context):
+
+        project_operations.initialize_catalog()
+
+        return {'FINISHED'}
+#endregion
+
+# region files
+class INCH_PIPILINE_OT_generate_files_list(Operator):
+    """Detailed descroption"""
+
+    bl_label = "Dummy"
+    bl_idname = "inch.generate_files_list"
+
+    local_path: StringProperty(default='')
+    server_path: StringProperty(default='')
+    name: StringProperty(default='')
+
+    def execute(self, context):
+        # OnFolderSelect Call
+
+        local_folder = self.local_path
+        server_folder = self.server_path
+
+        filter_mask = '*.blend'
+
+        project_operations.compare_lists(
+            local_folder, server_folder, filter_mask)
+        project_operations.redraw_ui()
+
+        current_folder = bpy.context.scene.inch_current_folder
+        current_folder.local_path = local_folder
+        current_folder.server_path = server_folder
+        current_folder.name = self.name
+
+        return {'FINISHED'}
+
+
+class INCH_PIPILINE_OT_copy_file(Operator):
+    """Detailed descroption"""
+
+    bl_label = "Copy file"
+    bl_idname = "inch.copy_file"
+
+    to_server: BoolProperty()
+
+    def execute(self, context):
+        index = bpy.context.scene.inch_list_index
+
+        file_from = bpy.context.scene.inch_files_list[index].local_path
+        file_to = bpy.context.scene.inch_files_list[index].server_path
+
+        if self.to_server:
+            shutil.copy2(file_from, file_to)
+        else:
+            shutil.copy2(file_to, file_from)
+
+        return {'FINISHED'}
+
+
+class INCH_PIPILINE_OT_copy_file_path(Operator):
+    """Detailed descroption"""
+
+    bl_label = "Copy file path"
+    bl_idname = "inch.copy_file_path"
+
+    path: StringProperty()
+
+    def execute(self, context):
+        command = 'echo ' + self.path.strip() + '| clip'
+        os.system(command)
+        return {'FINISHED'}
+
+
+class INCH_PIPILINE_OT_delete_file(Operator):
+    """Delete selected file on the local"""
+
+    bl_label = "Delete file"
+    bl_idname = "inch.delete_file"
+
+    def execute(self, context):
+
+        index = bpy.context.scene.inch_list_index
+        file_to_delete = bpy.context.scene.inch_files_list[index].local_path
+
+        os.remove(file_to_delete)
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+
+        return context.window_manager.invoke_props_dialog(self)
+
+    def draw(self, context):
+        index = bpy.context.scene.inch_list_index
+        file_to_delete = bpy.context.scene.inch_files_list[index].name
+        layout = self.layout
+        layout.label(text='Delete {}'.format(file_to_delete))
+
+
+class INCH_PIPILINE_OT_refresh_files_list(Operator):
+    """Detailed descroption"""
+
+    bl_label = "Dummy"
+    bl_idname = "inch.refresh"
+
+    def execute(self, context):
+
+        current_folder = bpy.context.scene.inch_current_folder
+
+        local_folder = current_folder.local_path
+        server_folder = current_folder.server_path
+        filter_mask = '*.blend'
+
+        project_operations.compare_lists(
+            local_folder, server_folder, filter_mask)
+        project_operations.redraw_ui()
+
+        return {'FINISHED'}
+# endregion
+
+#region project
+class INCH_PIPILINE_OT_refresh_projects_list(Operator):
+    """Detailed descroption"""
+
+    bl_label = "Refresh projects list"
+    bl_idname = "inch.refresh_projects_list"
+
+    def execute(self, context):
+        project_operations.reload_projects_db()
+        return {'FINISHED'}
+
+
+class INCH_PIPILINE_OT_creating_project_dialog(Operator):
+
+    bl_idname = 'wm.inch_create_project_dialog'
+    bl_label = 'Create Project'
+
+    project_name: StringProperty(name='Name')
+
+    server_path: StringProperty(
+        name='Server Path',
+        default='D:\\projects\\Pipiline\\server\\Stomatidin_2019_056'
+    )
+
+    project_type: EnumProperty(
+        name="Type",
+        items=[
+            ("VIDEO", "Video", "Макс, не тупи..."),
+            ("PACKS", "Packs", "Лучше б вы мне в утреннюю кашу насрали!"),
+            ("UNITY", "Unity", "Не знал, что у нас такие есть..."),
+        ]
+    )
+
+    def execute(self, context):
+
+        project_name = self.project_name
+        project_type = self.project_type
+        server_path = self.server_path
+
+        server_path = project_operations.convert_mac_to_human(server_path)
+        local_path = project_operations.compute_project_local_path(server_path)
+
+        project_operations.write_new_project(
+            project_name, project_type, local_path, server_path)
+        project_operations.reload_projects_db()
+        project_operations.create_catalogs(
+            project_type, local_path, server_path)
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+#endregion
+
+class INCH_PIPILINE_OT_save_main_file_dialog(Operator):
+
+    bl_idname = 'wm.inch_save_main_file'
+    bl_label = 'Save main file'
+
+    main_file_name: StringProperty(name='Name',
+                                   description="Character_Zombie_Model \nCharacter_Zombie_Rig \nCharacter_Zombie_Animation_Running",
+                                   default='Prefix_MainName_Sufix')
+
+    def execute(self, context):
+
+        main_file_name = self.main_file_name
+        current_root = bpy.context.scene.inch_current_project.local_path
+        relative_file_folder = 'Work\\3D\\Project\\Blend_Files'
+
+        head_path = os.path.join(current_root, relative_file_folder)
+        full_path = os.path.join(head_path, main_file_name+'_01.blend')
+
+        bpy.ops.wm.save_as_mainfile(filepath=full_path)
+
+        return {'FINISHED'}
+
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row()
+
+        col_l = row.column(align=True)
+        col_l.label(text="Character_Zombie_Model")
+        col_l.label(text="Character_Zombie_Rig")
+        col_l.label(text="Character_Zombie_Animation_Running")
+
+        col_r = row.column(align=True)
+        col_r.label(text="Scene_Lavina_Modeling")
+        col_r.label(text="Scene_Lavina_Animation")
+        col_r.label(text="Prop_Dildo_Modeling")
+
+        layout.prop(self, 'main_file_name', text='')
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self, width=400)
+
+
+class INCH_PIPILINE_OT_iter_main_file(Operator):
+
+    bl_idname = 'inch.iter_main_file'
+    bl_label = 'Iter main file'
+
+    def execute(self, context):
+
+        def iterate_name(name):
+
+            name_iterator_01 = int(name[len(name)-7])
+            name_iterator_10 = int(name[len(name)-8])
+
+            iter_to_replace = '{}{}.blend'.format(
+                name_iterator_10, name_iterator_01)
+
+            if name_iterator_01 == 9:
+                name_iterator_10 += 1
+                name_iterator_01 = 0
+            else:
+                name_iterator_01 += 1
+
+            new_iter = '{}{}.blend'.format(name_iterator_10, name_iterator_01)
+            itered_name = name.replace(iter_to_replace, new_iter)
+
+            return itered_name
+
+        bpy.ops.wm.save_mainfile()
+
+        current_root = bpy.context.scene.inch_current_project.local_path
+        relative_folder = 'Work\\3D\\Project\\Blend_Files\\Versions'
+
+        old_mainfile_path = bpy.data.filepath
+        old_mainfile_name = os.path.basename(old_mainfile_path)
+
+        itered_mainfile_name = iterate_name(old_mainfile_path)
+
+        head_path = os.path.join(current_root, relative_folder)
+        destination_old_mainfile = os.path.join(head_path, old_mainfile_name)
+
+        bpy.ops.wm.save_as_mainfile(filepath=itered_mainfile_name)
+        shutil.move(old_mainfile_path, destination_old_mainfile)
+
+        return {'FINISHED'}
+
+
+class INCH_PIPILINE_OT_define_local_path_dialog(Operator):
+
+    bl_idname = 'wm.setup_local_path_dialog'
+    bl_label = 'Setup Path'
+
+    local_root: StringProperty(name='Local Path',
+                               default=project_operations.read_local_root())
+
+    def execute(self, context):
+
+        local_root = self.local_root
+
+        project_operations.write_local_root(local_root)
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+
+        return context.window_manager.invoke_props_dialog(self)
+
+
+def register():
+    bpy.utils.register_class(INCH_PIPILINE_OT_dummy)
+    bpy.utils.register_class(INCH_PIPILINE_OT_iter_main_file)
+    bpy.utils.register_class(INCH_PIPILINE_OT_save_main_file_dialog)
+    bpy.utils.register_class(INCH_PIPILINE_OT_generate_files_list)
+    bpy.utils.register_class(INCH_PIPILINE_OT_generate_sub_catalog)
+    bpy.utils.register_class(INCH_PIPILINE_OT_copy_file_path)
+    bpy.utils.register_class(INCH_PIPILINE_OT_refresh_files_list)
+    bpy.utils.register_class(INCH_PIPILINE_OT_creating_project_dialog)
+    bpy.utils.register_class(INCH_PIPILINE_OT_define_local_path_dialog)
+    bpy.utils.register_class(INCH_PIPILINE_OT_refresh_projects_list)
+    bpy.utils.register_class(INCH_PIPILINE_OT_open_folder)
+    bpy.utils.register_class(INCH_PIPILINE_OT_copy_folder_path)
+    bpy.utils.register_class(INCH_PIPILINE_OT_delete_file)
+    bpy.utils.register_class(INCH_PIPILINE_OT_copy_file)
