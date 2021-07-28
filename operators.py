@@ -165,6 +165,8 @@ class INCH_PIPILINE_OT_delete_file(Operator):
         if event.ctrl:          
             self.path = 'server_path'
             print('pish')
+        else:
+            self.path = 'local_path'
         return context.window_manager.invoke_props_dialog(self)
 
     def draw(self, context):        
