@@ -1,2 +1,3 @@
-/projects_db.txt
 __pycache__/
+*.txt
+projects_db.txt
