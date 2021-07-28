@@ -18,8 +18,12 @@ class INCH_PIPILINE_OT_dummy(Operator):
 
     def execute(self, context):
         print(self.message)
-
         return {'FINISHED'}
+
+    def invoke(self, context, event):
+        if event.shift:
+            self.message = "Jopa"
+        return self.execute(context)
 
 #region catalog
 class INCH_PIPILINE_OT_copy_folder_path(Operator):
@@ -38,18 +42,22 @@ class INCH_PIPILINE_OT_copy_folder_path(Operator):
 
 
 class INCH_PIPILINE_OT_open_folder(Operator):
-    """Detailed descroption"""
+    """Open local folder. Press CTRL to open server folder"""
 
     bl_label = "Open folder"
     bl_idname = "inch.open_folder"
 
-    message: StringProperty(default='Pish!')
-
     def execute(self, context):
         path = bpy.context.scene.inch_current_folder.local_path
         os.startfile(path)
-
         return {'FINISHED'}
+
+    def invoke(self, context, event):
+        if event.ctrl:
+            path = bpy.context.scene.inch_current_folder.server_path
+            os.startfile(path)
+            return {'FINISHED'}
+        return self.execute(context)
 
 
 class INCH_PIPILINE_OT_generate_sub_catalog(Operator):
@@ -135,26 +143,33 @@ class INCH_PIPILINE_OT_copy_file_path(Operator):
 
 
 class INCH_PIPILINE_OT_delete_file(Operator):
-    """Delete selected file on the local"""
+    """Delete selected file on the local. Hold CTRL to delete on the server"""
 
     bl_label = "Delete file"
     bl_idname = "inch.delete_file"
 
-    def execute(self, context):
+    path: StringProperty(default='local_path')
 
+    def define_file(self):
         index = bpy.context.scene.inch_list_index
-        file_to_delete = bpy.context.scene.inch_files_list[index].local_path
+        file_to_delete = eval('bpy.context.scene.inch_files_list[{}].{}'.format(index, self.path))
+        return file_to_delete
 
+    def execute(self, context):
+        file_to_delete = self.define_file()
         os.remove(file_to_delete)
+
         return {'FINISHED'}
 
     def invoke(self, context, event):
-
+        if event.ctrl:          
+            self.path = 'server_path'
+            print('pish')
         return context.window_manager.invoke_props_dialog(self)
 
-    def draw(self, context):
-        index = bpy.context.scene.inch_list_index
-        file_to_delete = bpy.context.scene.inch_files_list[index].name
+    def draw(self, context):        
+        
+        file_to_delete = self.define_file()
         layout = self.layout
         layout.label(text='Delete {}'.format(file_to_delete))
 

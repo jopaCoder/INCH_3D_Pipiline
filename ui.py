@@ -42,7 +42,6 @@ class INCH_PIPILINE_PT_MainUI(Panel):
 # region header
         layout = self.layout
         main_col = layout.column()
-
         first_row = main_col.row()
         first_row.prop(scene, 'inch_project_enum', text='Project')
         first_row.operator("inch.refresh_projects_list",
