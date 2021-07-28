@@ -20,12 +20,12 @@ class INCH_PIPILINE_UL_files_list(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
         layout.label(text=item.name, icon='BLENDER')
         layout.alert = item.alert
-        if not item.state == "local":
-            layout.operator("inch.copy_file_path", text='',
-                            icon=item.icon, emboss=False).path = item.server_path
-        else:
-            layout.operator("inch.copy_file_path", text='',
-                            icon=item.icon, emboss=False).path = item.local_path
+        copy_file_path_ot = layout.operator("inch.copy_file_path", 
+                    text='', 
+                    icon=item.icon, 
+                    emboss=False)
+        copy_file_path_ot.local_path = item.local_path
+        copy_file_path_ot.server_path = item.server_path
         layout.label(text=item.state)
 
 

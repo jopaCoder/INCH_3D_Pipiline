@@ -134,6 +134,8 @@ class INCH_PIPILINE_OT_copy_file_path(Operator):
     bl_label = "Copy file path"
     bl_idname = "inch.copy_file_path"
 
+    local_path: StringProperty()
+    server_path: StringProperty()
     path: StringProperty()
 
     def execute(self, context):
@@ -141,6 +143,13 @@ class INCH_PIPILINE_OT_copy_file_path(Operator):
         os.system(command)
         return {'FINISHED'}
 
+    def invoke(self, context, event):
+        if event.ctrl:
+            self.path = self.server_path
+        else:
+            self.path = self.local_path
+            
+        return self.execute(context)
 
 class INCH_PIPILINE_OT_delete_file(Operator):
     """Delete selected file on the local. Hold CTRL to delete on the server"""
