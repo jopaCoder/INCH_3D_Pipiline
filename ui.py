@@ -18,12 +18,14 @@ class INCH_PIPILINE_UL_catalog_browser(UIList):
 class INCH_PIPILINE_UL_files_list(UIList):
 
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
-        layout.label(text=item.name, icon='BLENDER')
+        row = layout.row(align=True)
+        row.operator('inch.dummy', text='', icon='BLENDER', emboss=False)
+        row.label(text=item.name)
         layout.alert = item.alert
         copy_file_path_ot = layout.operator("inch.copy_file_path", 
-                    text='', 
-                    icon=item.icon, 
-                    emboss=False)
+                                                text='', 
+                                                icon=item.icon, 
+                                                emboss=False)
         copy_file_path_ot.local_path = item.local_path
         copy_file_path_ot.server_path = item.server_path
         layout.label(text=item.state)

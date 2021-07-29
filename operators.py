@@ -18,7 +18,7 @@ class INCH_PIPILINE_OT_dummy(Operator):
 
     def execute(self, context):
 
-        print(bpy.context.window_manager.operators.keys())
+        print(self.message)
         return {'FINISHED'}
 
 
@@ -84,7 +84,6 @@ class INCH_PIPILINE_OT_generate_files_list(Operator):
     name: StringProperty(default='')
 
     def execute(self, context):
-        # OnFolderSelect Call
 
         local_folder = self.local_path
         server_folder = self.server_path
@@ -307,8 +306,12 @@ class INCH_PIPILINE_OT_iter_main_file(Operator):
     def execute(self, context):
 
         def iterate_name(name):
+            
+            try:
+                name_iterator_01 = int(name[len(name)-7])
+            except ValueError:
+                return {'CANCELED'}
 
-            name_iterator_01 = int(name[len(name)-7])
             name_iterator_10 = int(name[len(name)-8])
 
             iter_to_replace = '{}{}.blend'.format(
@@ -337,8 +340,11 @@ class INCH_PIPILINE_OT_iter_main_file(Operator):
 
         head_path = os.path.join(current_root, relative_folder)
         destination_old_mainfile = os.path.join(head_path, old_mainfile_name)
-
-        bpy.ops.wm.save_as_mainfile(filepath=itered_mainfile_name)
+        try:
+            bpy.ops.wm.save_as_mainfile(filepath=itered_mainfile_name)
+        except TypeError:
+            project_operations.show_message_box('Save the file first!')
+            return {'FINISHED'}
         shutil.move(old_mainfile_path, destination_old_mainfile)
 
         return {'FINISHED'}
