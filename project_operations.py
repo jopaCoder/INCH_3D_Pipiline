@@ -202,7 +202,7 @@ def read_local_root(key):
         with open(project_system_paths.LOCAL_PATH_SETTINGS, 'r') as local_path_setting:
             return json.load(local_path_setting)[key]
     else:
-        return 'D:\\Projects\\'
+        return 'Произошла какая - то хуйня. Зовите Лешу!'
 
 # endregion
 
