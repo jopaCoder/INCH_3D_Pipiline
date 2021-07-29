@@ -325,7 +325,7 @@ def check_folder_type(folder):
     if folder == 'Blend_Files':
         mask = '*.blend'
         icon = 'BLENDER'
-    elif folder == 'Maps' or folder == 'References':
+    elif folder == 'Maps' or folder == 'References' or folder == 'Preview':
         mask = '*.*'
         icon = 'IMAGE_DATA'
     else:

@@ -1,4 +1,5 @@
-VIDEO = ( 'Preview\\',
+VIDEO = (   'Materials',
+            'Preview\\',
             'Preview\\Video\\',
             'Preview\\Image\\',
             'Work\\',
@@ -21,7 +22,8 @@ VIDEO = ( 'Preview\\',
             'Work\\3D\\Project\\Cache\\'
 )
 
-PACKS = ( 'Preview\\',
+PACKS = (   'Materials',
+            'Preview\\',
             'Preview\\Video\\',
             'Preview\\Image\\',
             'Work\\',
