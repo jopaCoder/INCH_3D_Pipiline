@@ -17,13 +17,10 @@ class INCH_PIPILINE_OT_dummy(Operator):
     message: StringProperty(default='Pish!')
 
     def execute(self, context):
-        print(self.message)
+
+        print(bpy.context.window_manager.operators.keys())
         return {'FINISHED'}
 
-    def invoke(self, context, event):
-        if event.shift:
-            self.message = "Jopa"
-        return self.execute(context)
 
 #region catalog
 class INCH_PIPILINE_OT_copy_folder_path(Operator):
@@ -352,20 +349,25 @@ class INCH_PIPILINE_OT_define_local_path_dialog(Operator):
     bl_idname = 'wm.setup_local_path_dialog'
     bl_label = 'Setup Path'
 
-    local_root: StringProperty(name='Local Path',
-                               default=project_operations.read_local_root())
+    local_root: StringProperty(name='Local root',
+                                default=project_operations.read_local_root('local_root')
+                                )
+    g_editor: StringProperty(name='Graphical editor',
+                                default=project_operations.read_local_root('g_editor')
+                                )
 
     def execute(self, context):
 
-        local_root = self.local_root
-
-        project_operations.write_local_root(local_root)
+        project_operations.write_local_root('local_root', self.local_root)
+        project_operations.write_local_root('g_editor', self.g_editor)
 
         return {'FINISHED'}
 
     def invoke(self, context, event):
 
         return context.window_manager.invoke_props_dialog(self)
+
+
 
 
 def register():

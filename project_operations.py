@@ -179,18 +179,28 @@ def compare_lists(local_dir, server_dir, mask):
 # region Root
 
 
-def write_local_root(local_root):
+def write_local_root(key, path):
 
-    with open(project_system_paths.LOCAL_PATH_SETTINGS, 'w') as local_path_setting:
-        json.dump(local_root, local_path_setting, indent=2)
+    paths_dict = {}
+
+    try:
+        with open(project_system_paths.LOCAL_PATH_SETTINGS, 'r') as local_path_setting:
+            paths_dict = json.load(local_path_setting)
+    except json.decoder.JSONDecodeError:
+        pass
+    finally:   
+        paths_dict[key] = path
+
+        with open(project_system_paths.LOCAL_PATH_SETTINGS, 'w') as local_path_setting:
+            json.dump(paths_dict, local_path_setting, indent=2)
 
 
-def read_local_root():
+def read_local_root(key):
     project_system_paths.LOCAL_PATH_SETTINGS
 
     if os.path.exists(project_system_paths.LOCAL_PATH_SETTINGS):
         with open(project_system_paths.LOCAL_PATH_SETTINGS, 'r') as local_path_setting:
-            return json.load(local_path_setting)
+            return json.load(local_path_setting)[key]
     else:
         return 'D:\\Projects\\'
 

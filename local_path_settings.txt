@@ -1,1 +1,4 @@
-"D:\\Projects\\"
+{
+  "local_root": "D:\\Projects\\",
+  "g_editor": "C:\\Program Files\\Krita (x64)\\bin\\krita.exe"
+}
