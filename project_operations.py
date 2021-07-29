@@ -317,6 +317,24 @@ def show_message_box(message="", title="Message Box", icon= 'INFO'):
 
     bpy.context.window_manager.popup_menu(draw, title = title, icon = icon)
 
+def check_folder_type(folder):
+    dict = {}
+    mask = ''
+    icon = ''
+
+    if folder == 'Blend_Files':
+        mask = '*.blend'
+        icon = 'BLENDER'
+    elif folder == 'Maps' or folder == 'References':
+        mask = '*.*'
+        icon = 'IMAGE_DATA'
+    else:
+        mask = '*.*'
+        icon = 'FILE'
+
+    dict = {'mask': mask, 'icon': icon}
+    return dict
+
 
 def redraw_ui():
     for area in bpy.context.screen.areas:

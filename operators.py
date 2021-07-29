@@ -88,10 +88,10 @@ class INCH_PIPILINE_OT_generate_files_list(Operator):
         local_folder = self.local_path
         server_folder = self.server_path
 
-        filter_mask = '*.blend'
+        icon_mask = project_operations.check_folder_type(self.name)
+        filter_mask = icon_mask['mask']
 
-        project_operations.compare_lists(
-            local_folder, server_folder, filter_mask)
+        project_operations.compare_lists(local_folder, server_folder, filter_mask)
         project_operations.redraw_ui()
 
         current_folder = bpy.context.scene.inch_current_folder
