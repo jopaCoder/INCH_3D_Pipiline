@@ -1,8 +1,9 @@
 import os
 import bpy
 import shutil
+import subprocess    
 
-from bpy.types import Operator
+from bpy.types import FILEBROWSER_PT_directory_path, Operator
 from bpy.props import BoolProperty, IntProperty, StringProperty, EnumProperty
 
 from . import project_operations
@@ -73,6 +74,23 @@ class INCH_PIPILINE_OT_generate_sub_catalog(Operator):
 #endregion
 
 # region files
+
+class INCH_PIPILINE_OT_open_file(Operator):
+    """Open file. Hold ctrl to alternative soft"""
+
+    bl_label = "Open file"
+    bl_idname = "inch.open_file"
+
+    file_path: StringProperty()
+
+    def execute(self, context):
+       
+        bpy.ops.wm.open_mainfile(filepath=self.file_path)
+
+        #subprocess.call([path_to_notepad, path_to_file])
+        return {'FINISHED'}
+
+
 class INCH_PIPILINE_OT_generate_files_list(Operator):
     """Detailed descroption"""
 
@@ -146,6 +164,7 @@ class INCH_PIPILINE_OT_copy_file_path(Operator):
             self.path = self.local_path
             
         return self.execute(context)
+
 
 class INCH_PIPILINE_OT_delete_file(Operator):
     """Delete selected file on the local. Hold CTRL to delete on the server"""
@@ -391,3 +410,4 @@ def register():
     bpy.utils.register_class(INCH_PIPILINE_OT_copy_folder_path)
     bpy.utils.register_class(INCH_PIPILINE_OT_delete_file)
     bpy.utils.register_class(INCH_PIPILINE_OT_copy_file)
+    bpy.utils.register_class(INCH_PIPILINE_OT_open_file)
