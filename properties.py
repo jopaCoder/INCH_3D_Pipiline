@@ -69,7 +69,7 @@ class FileListItem(PropertyGroup):
         name="",
         default='local')
 
-    icon: StringProperty(
+    state_icon: StringProperty(
         name="",
         default='X')
 

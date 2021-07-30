@@ -109,7 +109,8 @@ class INCH_PIPILINE_OT_generate_files_list(Operator):
         icon_mask = project_operations.check_folder_type(self.name)
         filter_mask = icon_mask['mask']
 
-        project_operations.compare_lists(local_folder, server_folder, filter_mask)
+        dict_of_items = project_operations.compare_lists(local_folder, server_folder, filter_mask)
+        project_operations.build_list(dict_of_items)
         project_operations.redraw_ui()
 
         current_folder = bpy.context.scene.inch_current_folder

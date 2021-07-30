@@ -123,18 +123,22 @@ def generate_projects_list(self, context):
 # region List
 
 
-def build_list(items, state, icon, alert, local_path, server_path):
+def build_list(dict_of_stats):
     
     property_group = bpy.context.scene.inch_files_list
+    property_group.clear()
 
-    for item in items:
+    list_of_items = dict_of_stats.keys()
+    list_of_items = sorted(list_of_items)
+
+    for item in list_of_items:
         handle = property_group.add()
-        handle.state = state
         handle.name = item
-        handle.icon = icon
-        handle.alert = alert
-        handle.local_path = os.path.join(local_path, item)
-        handle.server_path = os.path.join(server_path, item)
+        handle.state = dict_of_stats[item]['state']
+        handle.state_icon = dict_of_stats[item]['state_icon']
+        handle.alert = dict_of_stats[item]['alert']
+        handle.local_path = dict_of_stats[item]['local_path']
+        handle.server_path = dict_of_stats[item]['server_path']
 
 
 def split_path(listOfFiles):
@@ -155,24 +159,36 @@ def compare_lists(local_dir, server_dir, mask):
     # find unique words
     only_local_files = set(local_files) - set(server_files)
     only_server_files = set(server_files) - set(local_files)
-
     # find duplicates with converting to list for sorting
-    duplyLocal = list(set(local_files) - set(only_local_files))
-    #duplyServer = list(set(server) - set(onlyServer))
-    # #возможно придется сравнивать файлы, пока не трогаем
-    duplyLocal.sort()
-    # duplyServer.sort()
+    duply_local = set(local_files) - set(only_local_files)
+    
+    file_stats = {}
 
-    property_group = bpy.context.scene.inch_files_list
-    property_group.clear()
+    list_of_lists = (only_local_files, only_server_files, duply_local)
+    
+    keys = ('only_local_files', 'only_server_files', 'duply_local')
 
-    #нужно заменить список на словарь и отказаться от этого идиотизма с 3 вызовами функции
-    #Тогда появится возможность отсортировать файлы до формирования списка
-    #return files_dict
+    state = {'only_local_files': 'local',
+             'only_server_files': 'server',
+             'duply_local': 'both'}
 
-    build_list(only_local_files, 'local', 'NODETREE', False, local_dir, server_dir)
-    build_list(duplyLocal, 'Both', 'DOT', False, local_dir, server_dir)
-    build_list(only_server_files, 'server', 'URL', True, local_dir, server_dir)
+    state_icon = {'only_local_files': 'NODETREE',
+                  'only_server_files': 'URL',
+                  'duply_local': 'DOT'}
+
+    alert = {'only_local_files': False,
+                  'only_server_files': True,
+                  'duply_local': False}
+
+    for index in range(3):
+        for item in list_of_lists[index]:
+            file_stats[item] = {'state': state[keys[index]], 
+                                'state_icon': state_icon[keys[index]], 
+                                'alert': alert[keys[index]],
+                                'local_path': os.path.join(local_dir, item),
+                                'server_path': os.path.join(server_dir, item)
+                                }
+    return file_stats
 
 # endregion
 
