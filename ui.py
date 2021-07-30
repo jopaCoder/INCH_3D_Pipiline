@@ -24,7 +24,7 @@ class INCH_PIPILINE_UL_files_list(UIList):
         layout.alert = item.alert
         copy_file_path_ot = layout.operator("inch.copy_file_path", 
                                                 text='', 
-                                                icon=item.icon, 
+                                                icon=item.state_icon, 
                                                 emboss=False)
         copy_file_path_ot.local_path = item.local_path
         copy_file_path_ot.server_path = item.server_path
