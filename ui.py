@@ -145,3 +145,9 @@ def register():
     bpy.utils.register_class(INCH_PIPILINE_UL_files_list)
     bpy.utils.register_class(INCH_PIPILINE_PT_MainUI)
     bpy.utils.register_class(SettingsMenu)
+
+def unregister():
+    bpy.utils.unregister_class(INCH_PIPILINE_UL_catalog_browser)
+    bpy.utils.unregister_class(INCH_PIPILINE_UL_files_list)
+    bpy.utils.unregister_class(INCH_PIPILINE_PT_MainUI)
+    bpy.utils.unregister_class(SettingsMenu)
