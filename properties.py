@@ -6,29 +6,32 @@ from . import project_operations
 from bpy.props import StringProperty, CollectionProperty, IntProperty, BoolProperty, EnumProperty, PointerProperty
 from bpy.types import PropertyGroup
 
+
 class CatalogListItem(PropertyGroup):
-    
+
     name: StringProperty(
         name="Name",
         description="A name for this item",
         default="Zalupa")
-    
+
     local_path: StringProperty(
         name="Path",
         description="A name for this item",
-        default="local_path")    
+        default="local_path")
 
     server_path: StringProperty(
         name="Path",
         description="A name for this item",
-        default="server_path")    
+        default="server_path")
+
 
 class CatalogListHandler(PropertyGroup):
 
     col: CollectionProperty(type=CatalogListItem)
-    index: IntProperty(update=project_operations.generate_subcatalog) 
+    index: IntProperty(update=project_operations.generate_subcatalog)
     self_lvl: IntProperty()
     trgt_lvl: IntProperty()
+
 
 class ProjectListItem(PropertyGroup):
     name: StringProperty(
@@ -57,25 +60,35 @@ class FileListItem(PropertyGroup):
     name: StringProperty(
         name="Name",
         description="A name for this item",
-        default="Zalupa")
+        default="Zalupa"
+        )
 
     local_path: StringProperty(
-        name="Path")
+        name="Path"
+        )
 
     server_path: StringProperty(
-        name="Path")
+        name="Path"
+        )
 
     state: StringProperty(
         name="",
-        default='local')
+        default='local'
+        )
 
     state_icon: StringProperty(
         name="",
-        default='X')
+        default='X'
+        )
+
+    main_icon: StringProperty(
+        name="",
+        default='BLENDER'
+        )
 
     alert: BoolProperty(
         default=False
-    )
+        )
 
 
 def register():
@@ -101,5 +114,3 @@ def register():
         type=ProjectListItem)
     bpy.types.Scene.inch_current_folder = PointerProperty(
         type=ProjectListItem)
-
-    

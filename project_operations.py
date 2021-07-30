@@ -125,6 +125,10 @@ def generate_projects_list(self, context):
 
 def build_list(dict_of_stats):
     
+    #иделаьное место, чтобы определять иконки по расширению файла
+    #и софт с которым открывать. 
+    #Это же облегчит некоторые операторы от кода, например рефреш
+
     property_group = bpy.context.scene.inch_files_list
     property_group.clear()
 
@@ -139,15 +143,14 @@ def build_list(dict_of_stats):
         handle.alert = dict_of_stats[item]['alert']
         handle.local_path = dict_of_stats[item]['local_path']
         handle.server_path = dict_of_stats[item]['server_path']
+        handle.main_icon = dict_of_stats[item]['main_icon']
 
 
 def refresh_files_list():
+       
         current_folder = bpy.context.scene.inch_current_folder
 
-        icon_mask = check_folder_type(current_folder.name)
-        filter_mask = icon_mask['mask']
-
-        dict_of_items = compare_lists(current_folder.local_path, current_folder.server_path, filter_mask)
+        dict_of_items = compare_lists(current_folder.local_path, current_folder.server_path)
         build_list(dict_of_items)
         redraw_ui()
 
@@ -159,7 +162,11 @@ def split_path(listOfFiles):
     return splittedList
 
 
-def compare_lists(local_dir, server_dir, mask):
+def compare_lists(local_dir, server_dir):
+
+    folder_stats = check_folder_type(os.path.basename(local_dir))
+    main_icon = folder_stats['icon']
+    mask = folder_stats['mask']
 
     local_files = glob.glob(os.path.join(local_dir, mask))
     server_files = glob.glob(os.path.join(server_dir, mask))
@@ -196,6 +203,7 @@ def compare_lists(local_dir, server_dir, mask):
             file_stats[item] = {'state': state[keys[index]], 
                                 'state_icon': state_icon[keys[index]], 
                                 'alert': alert[keys[index]],
+                                'main_icon': main_icon,
                                 'local_path': os.path.join(local_dir, item),
                                 'server_path': os.path.join(server_dir, item)
                                 }

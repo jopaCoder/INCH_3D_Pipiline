@@ -106,10 +106,7 @@ class INCH_PIPILINE_OT_generate_files_list(Operator):
         local_folder = self.local_path
         server_folder = self.server_path
 
-        icon_mask = project_operations.check_folder_type(self.name)
-        filter_mask = icon_mask['mask']
-
-        dict_of_items = project_operations.compare_lists(local_folder, server_folder, filter_mask)
+        dict_of_items = project_operations.compare_lists(local_folder, server_folder)
         project_operations.build_list(dict_of_items)
         project_operations.redraw_ui()
 
