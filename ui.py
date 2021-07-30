@@ -20,7 +20,9 @@ class INCH_PIPILINE_UL_files_list(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
         row = layout.row(align=True)
         icon = item.main_icon
-        row.operator('inch.open_file', text='', icon=icon, emboss=False).file_path=item.local_path
+        open_file_ot = row.operator('inch.open_file', text='', icon=icon, emboss=False)
+        open_file_ot.file_path=item.local_path
+        open_file_ot.file_type=item.file_type
         row.label(text=item.name)
         layout.alert = item.alert
         copy_file_path_ot = layout.operator("inch.copy_file_path", 

@@ -82,19 +82,22 @@ class INCH_PIPILINE_OT_open_file(Operator):
     bl_idname = "inch.open_file"
 
     file_path: StringProperty()
+    file_type: StringProperty()
 
     def execute(self, context):
        
-        bpy.ops.wm.open_mainfile(filepath=self.file_path)
-
-        #subprocess.call([path_to_notepad, path_to_file])
+        if self.file_type == 'Blender':
+            bpy.ops.wm.open_mainfile(filepath=self.file_path)
+        else:
+            #project_operations.show_message_box('Wrong file')
+            subprocess.run('cmd /c start "" "'+ self.file_path +'"')
         return {'FINISHED'}
 
 
 class INCH_PIPILINE_OT_generate_files_list(Operator):
-    """Detailed descroption"""
+    """Get list of files. Press CTRL to open local folder. Press SHIFT to open server folder"""
 
-    bl_label = "Dummy"
+    bl_label = "Get list of open folder"
     bl_idname = "inch.generate_files_list"
 
     local_path: StringProperty(default='')
@@ -116,6 +119,16 @@ class INCH_PIPILINE_OT_generate_files_list(Operator):
         current_folder.name = self.name
 
         return {'FINISHED'}
+
+    def invoke(self, context, event):
+        if event.ctrl:
+            os.startfile(self.local_path)
+            return {'FINISHED'}
+        elif event.shift:
+            os.startfile(self.server_path)
+            return {'FINISHED'}
+        else:
+            return self.execute(context)
 
 
 class INCH_PIPILINE_OT_copy_file(Operator):

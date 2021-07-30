@@ -63,6 +63,12 @@ class FileListItem(PropertyGroup):
         default="Zalupa"
         )
 
+    file_type: StringProperty(
+            name="Name",
+            description="",
+            default="Zalupa"
+            )
+
     local_path: StringProperty(
         name="Path"
         )

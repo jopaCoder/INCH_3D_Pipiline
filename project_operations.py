@@ -125,10 +125,6 @@ def generate_projects_list(self, context):
 
 def build_list(dict_of_stats):
 
-    # иделаьное место, чтобы определять иконки по расширению файла
-    # и софт с которым открывать.
-    # Это же облегчит некоторые операторы от кода, например рефреш
-
     property_group = bpy.context.scene.inch_files_list
     property_group.clear()
 
@@ -136,6 +132,8 @@ def build_list(dict_of_stats):
     list_of_items = sorted(list_of_items)
 
     for item in list_of_items:
+        file_type = check_file_type(item)
+
         handle = property_group.add()
         handle.name = item
         handle.state = dict_of_stats[item]['state']
@@ -144,6 +142,7 @@ def build_list(dict_of_stats):
         handle.local_path = dict_of_stats[item]['local_path']
         handle.server_path = dict_of_stats[item]['server_path']
         handle.main_icon = dict_of_stats[item]['main_icon']
+        handle.file_type = file_type
 
 
 def refresh_files_list():
@@ -375,6 +374,19 @@ def check_folder_type(folder):
     dict = {'mask': mask, 'icon': icon}
     return dict
 
+def check_file_type(file):
+    filename, ext = os.path.splitext(file)
+    #fbx obj alembic 
+    if ext == '.blend':
+        return 'Blender'
+    elif ext == '.tif' or ext == '.tiff' or ext == '.jpg' or ext == '.jpeg' or ext == '.png':
+        return 'Image'
+    elif ext == '.obj' or ext == '.fbx' or ext == '.abc':
+        return 'Mesh'
+    elif ext == '.wav' or ext == '.mp3':
+        return 'Sound'
+    else:
+        return 'Other'
 
 def redraw_ui():
     for area in bpy.context.screen.areas:

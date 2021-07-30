@@ -1,4 +1,4 @@
-# import subprocess    
+import subprocess    
 
 
 # path_to_notepad = "C:\\Program Files\\Krita (x64)\\bin\\krita.exe"
@@ -6,22 +6,6 @@
 
 # subprocess.call([path_to_notepad, path_to_file])
 
+filename = "D:\\Projects\\Stomatidin_2019_056\\Work\\3D\\Project\\Maps\\Screen.png"
 
-
-
-dict1 = {'apelsin': 'jopa',
-        'jopa': 'zalupa',
-        'zalupa': 'krokodil',
-        'pelmen': 'hvoropa',
-        'avokato': 'tratata'}
-
-list_for_sort = dict1.keys()
-
-for item in list_for_sort:
-    print(item)
-
-print('\n')
-list_for_sort = sorted(list_for_sort)
-
-for item in list_for_sort:
-    print(item)
+subprocess.run('cmd /c start "" "'+ filename +'"')
