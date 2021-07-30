@@ -76,7 +76,7 @@ class INCH_PIPILINE_OT_generate_sub_catalog(Operator):
 # region files
 
 class INCH_PIPILINE_OT_open_file(Operator):
-    """Open file. Hold ctrl to alternative soft"""
+    """Press CTRL for alternative soft. Press ALT for import. Press SHIFT for link"""
 
     bl_label = "Open file"
     bl_idname = "inch.open_file"
@@ -93,9 +93,17 @@ class INCH_PIPILINE_OT_open_file(Operator):
             subprocess.run('cmd /c start "" "'+ self.file_path +'"')
         return {'FINISHED'}
 
+    def invoke(self, context, event):
+        if event.ctrl and self.file_type == 'Image':
+            soft = project_operations.read_local_paths('g_editor')
+            subprocess.call([soft, self.file_path])
+            return {'FINISHED'}
+        else:
+            return self.execute(context)
+
 
 class INCH_PIPILINE_OT_generate_files_list(Operator):
-    """Get list of files. Press CTRL to open local folder. Press SHIFT to open server folder"""
+    """Press CTRL to open local folder. Press SHIFT to open server folder"""
 
     bl_label = "Get list of open folder"
     bl_idname = "inch.generate_files_list"
@@ -132,7 +140,7 @@ class INCH_PIPILINE_OT_generate_files_list(Operator):
 
 
 class INCH_PIPILINE_OT_copy_file(Operator):
-    """Detailed descroption"""
+    """Copy file to server or backward"""
 
     bl_label = "Copy file"
     bl_idname = "inch.copy_file"
@@ -158,7 +166,7 @@ class INCH_PIPILINE_OT_copy_file(Operator):
 
 
 class INCH_PIPILINE_OT_copy_file_path(Operator):
-    """Detailed descroption"""
+    """Press CTRL for server path"""
 
     bl_label = "Copy file path"
     bl_idname = "inch.copy_file_path"
@@ -218,7 +226,7 @@ class INCH_PIPILINE_OT_delete_file(Operator):
 
 
 class INCH_PIPILINE_OT_refresh_files_list(Operator):
-    """Detailed descroption"""
+    """Nothing interesting"""
 
     bl_label = "Dummy"
     bl_idname = "inch.refresh"
@@ -232,7 +240,7 @@ class INCH_PIPILINE_OT_refresh_files_list(Operator):
 
 #region project
 class INCH_PIPILINE_OT_refresh_projects_list(Operator):
-    """Detailed descroption"""
+    """Nothing interesting"""
 
     bl_label = "Refresh projects list"
     bl_idname = "inch.refresh_projects_list"
@@ -243,6 +251,7 @@ class INCH_PIPILINE_OT_refresh_projects_list(Operator):
 
 
 class INCH_PIPILINE_OT_creating_project_dialog(Operator):
+    """Menu for creating new project"""
 
     bl_idname = 'wm.inch_create_project_dialog'
     bl_label = 'Create Project'
@@ -285,6 +294,7 @@ class INCH_PIPILINE_OT_creating_project_dialog(Operator):
 #endregion
 
 class INCH_PIPILINE_OT_save_main_file_dialog(Operator):
+    """Save current file to Blend files folder"""
 
     bl_idname = 'wm.inch_save_main_file'
     bl_label = 'Save main file'
@@ -329,6 +339,7 @@ class INCH_PIPILINE_OT_save_main_file_dialog(Operator):
 
 
 class INCH_PIPILINE_OT_iter_main_file(Operator):
+    """Iter current file for +1 and move old version to folder Versions """
 
     bl_idname = 'inch.iter_main_file'
     bl_label = 'Iter main file'
@@ -383,15 +394,16 @@ class INCH_PIPILINE_OT_iter_main_file(Operator):
 
 
 class INCH_PIPILINE_OT_define_local_path_dialog(Operator):
+    """Choose your local root projects folder """
 
     bl_idname = 'wm.setup_local_path_dialog'
     bl_label = 'Setup Path'
 
     local_root: StringProperty(name='Local root',
-                                default=project_operations.read_local_root('local_root')
+                                default=project_operations.read_local_paths('local_root')
                                 )
     g_editor: StringProperty(name='Graphical editor',
-                                default=project_operations.read_local_root('g_editor')
+                                default=project_operations.read_local_paths('g_editor')
                                 )
 
     def execute(self, context):

@@ -12,7 +12,7 @@ from . import templates
 
 def compute_project_local_path(server_path):
     project_folder = os.path.basename(server_path)
-    local_root = read_local_root()
+    local_root = read_local_paths()
     project_local_path = os.path.join(local_root, project_folder)
 
     return project_local_path
@@ -230,7 +230,7 @@ def write_local_root(key, path):
             json.dump(paths_dict, local_path_setting, indent=2)
 
 
-def read_local_root(key):
+def read_local_paths(key):
     project_system_paths.LOCAL_PATH_SETTINGS
 
     if os.path.exists(project_system_paths.LOCAL_PATH_SETTINGS):
