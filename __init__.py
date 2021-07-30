@@ -32,6 +32,7 @@ from . import project_operations
 
 @persistent
 def load_handler(dummy):
+    print('wtf?')
     project_operations.reload_projects_db()
     project_operations.initialize_catalog()
 
