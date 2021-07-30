@@ -23,23 +23,23 @@ bl_info = {
 }
 
 import bpy
+
 from bpy.app.handlers import persistent
 
-from . import ui
 from . import properties
 from . import operators
+from . import ui
 from . import project_operations
 
 @persistent
 def load_handler(dummy):
-    print('wtf?')
     project_operations.reload_projects_db()
     project_operations.initialize_catalog()
 
 def register():
-    ui.register()
     properties.register()
     operators.register()
+    ui.register()
 
     bpy.app.handlers.load_post.append(load_handler)
     
@@ -47,5 +47,5 @@ def register():
 def unregister():
     pass
 
-if '__NAME__' == '__MAIN__':
+if __name__ == "__main__":
     register()
