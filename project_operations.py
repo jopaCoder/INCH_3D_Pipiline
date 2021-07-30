@@ -124,10 +124,10 @@ def generate_projects_list(self, context):
 
 
 def build_list(dict_of_stats):
-    
-    #иделаьное место, чтобы определять иконки по расширению файла
-    #и софт с которым открывать. 
-    #Это же облегчит некоторые операторы от кода, например рефреш
+
+    # иделаьное место, чтобы определять иконки по расширению файла
+    # и софт с которым открывать.
+    # Это же облегчит некоторые операторы от кода, например рефреш
 
     property_group = bpy.context.scene.inch_files_list
     property_group.clear()
@@ -147,12 +147,13 @@ def build_list(dict_of_stats):
 
 
 def refresh_files_list():
-       
-        current_folder = bpy.context.scene.inch_current_folder
 
-        dict_of_items = compare_lists(current_folder.local_path, current_folder.server_path)
-        build_list(dict_of_items)
-        redraw_ui()
+    current_folder = bpy.context.scene.inch_current_folder
+
+    dict_of_items = compare_lists(
+        current_folder.local_path, current_folder.server_path)
+    build_list(dict_of_items)
+    redraw_ui()
 
 
 def split_path(listOfFiles):
@@ -179,11 +180,11 @@ def compare_lists(local_dir, server_dir):
     only_server_files = set(server_files) - set(local_files)
     # find duplicates with converting to list for sorting
     duply_local = set(local_files) - set(only_local_files)
-    
+
     file_stats = {}
 
     list_of_lists = (only_local_files, only_server_files, duply_local)
-    
+
     keys = ('only_local_files', 'only_server_files', 'duply_local')
 
     state = {'only_local_files': 'local',
@@ -195,13 +196,13 @@ def compare_lists(local_dir, server_dir):
                   'duply_local': 'DOT'}
 
     alert = {'only_local_files': False,
-                  'only_server_files': True,
-                  'duply_local': False}
+             'only_server_files': True,
+             'duply_local': False}
 
     for index in range(3):
         for item in list_of_lists[index]:
-            file_stats[item] = {'state': state[keys[index]], 
-                                'state_icon': state_icon[keys[index]], 
+            file_stats[item] = {'state': state[keys[index]],
+                                'state_icon': state_icon[keys[index]],
                                 'alert': alert[keys[index]],
                                 'main_icon': main_icon,
                                 'local_path': os.path.join(local_dir, item),
@@ -223,7 +224,7 @@ def write_local_root(key, path):
             paths_dict = json.load(local_path_setting)
     except json.decoder.JSONDecodeError:
         pass
-    finally:   
+    finally:
         paths_dict[key] = path
 
         with open(project_system_paths.LOCAL_PATH_SETTINGS, 'w') as local_path_setting:
@@ -258,8 +259,10 @@ def generate_subcatalog(self, context):
 
     col = eval('bpy.context.scene.inch_catalogs[{}].col'.format(trgt_lvl))
     index = eval('bpy.context.scene.inch_catalogs[{}].index'.format(self_lvl))
-    local_path = eval('bpy.context.scene.inch_catalogs[{}].col[{}].local_path'.format(self_lvl, index))
-    server_path = eval('bpy.context.scene.inch_catalogs[{}].col[{}].server_path'.format(self_lvl, index))
+    local_path = eval(
+        'bpy.context.scene.inch_catalogs[{}].col[{}].local_path'.format(self_lvl, index))
+    server_path = eval(
+        'bpy.context.scene.inch_catalogs[{}].col[{}].server_path'.format(self_lvl, index))
 
     col.clear()
 
@@ -287,7 +290,7 @@ def initialize_catalog():
 
     col = bpy.context.scene.inch_catalogs[0].col
     col.clear()
-    
+
     try:
         with os.scandir(local_path) as it:
             for entry in it:
@@ -297,7 +300,8 @@ def initialize_catalog():
                     item.local_path = os.path.join(local_path, entry.name)
                     item.server_path = os.path.join(server_path, entry.name)
     except FileNotFoundError:
-        show_message_box(message="Someone deleted project folder", title="Макс, не тупи!", icon='ERROR')
+        show_message_box(message="Someone deleted project folder",
+                         title="Макс, не тупи!", icon='ERROR')
 
     clear_subcatalog(0, 1)
 
@@ -345,12 +349,12 @@ def convert_mac_to_human(path):
         return path
 
 
-def show_message_box(message="", title="Message Box", icon= 'INFO'):
-    
+def show_message_box(message="", title="Message Box", icon='INFO'):
+
     def draw(self, context):
         self.layout.label(text=message)
 
-    bpy.context.window_manager.popup_menu(draw, title = title, icon = icon)
+    bpy.context.window_manager.popup_menu(draw, title=title, icon=icon)
 
 
 def check_folder_type(folder):
@@ -361,7 +365,7 @@ def check_folder_type(folder):
     if folder == 'Blend_Files':
         mask = '*.blend'
         icon = 'BLENDER'
-    elif folder == 'Maps' or folder == 'References' or folder == 'Preview':
+    elif folder == 'Maps' or folder == 'References' or folder == 'Preview' or folder == 'Render':
         mask = '*.*'
         icon = 'IMAGE_DATA'
     else:
