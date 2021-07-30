@@ -344,6 +344,7 @@ def show_message_box(message="", title="Message Box", icon= 'INFO'):
 
     bpy.context.window_manager.popup_menu(draw, title = title, icon = icon)
 
+
 def check_folder_type(folder):
     dict = {}
     mask = ''

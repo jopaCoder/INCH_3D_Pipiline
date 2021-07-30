@@ -135,11 +135,13 @@ class INCH_PIPILINE_OT_copy_file(Operator):
         file_from = bpy.context.scene.inch_files_list[index].local_path
         file_to = bpy.context.scene.inch_files_list[index].server_path
 
-        if self.to_server:
-            shutil.copy2(file_from, file_to)
-        else:
-            shutil.copy2(file_to, file_from)
-            
+        try:
+            if self.to_server:
+                shutil.copy2(file_from, file_to)
+            else:
+                shutil.copy2(file_to, file_from)
+        except FileNotFoundError:
+            project_operations.show_message_box('Включи VPN!', 'Макс, не тупи!')
         project_operations.refresh_files_list()
 
         return {'FINISHED'}
