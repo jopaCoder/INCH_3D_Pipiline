@@ -133,7 +133,10 @@ class INCH_PIPILINE_OT_generate_files_list(Operator):
             os.startfile(self.local_path)
             return {'FINISHED'}
         elif event.shift:
-            os.startfile(self.server_path)
+            try:
+                os.startfile(self.server_path)
+            except FileNotFoundError:
+                project_operations.show_message_box('Включи VPN', 'Макс, не тупи!')
             return {'FINISHED'}
         else:
             return self.execute(context)
