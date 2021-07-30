@@ -141,6 +141,17 @@ def build_list(dict_of_stats):
         handle.server_path = dict_of_stats[item]['server_path']
 
 
+def refresh_files_list():
+        current_folder = bpy.context.scene.inch_current_folder
+
+        icon_mask = check_folder_type(current_folder.name)
+        filter_mask = icon_mask['mask']
+
+        dict_of_items = compare_lists(current_folder.local_path, current_folder.server_path, filter_mask)
+        build_list(dict_of_items)
+        redraw_ui()
+
+
 def split_path(listOfFiles):
     splittedList = []
     for f in listOfFiles:

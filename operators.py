@@ -139,6 +139,8 @@ class INCH_PIPILINE_OT_copy_file(Operator):
             shutil.copy2(file_from, file_to)
         else:
             shutil.copy2(file_to, file_from)
+            
+        project_operations.refresh_files_list()
 
         return {'FINISHED'}
 
@@ -184,6 +186,8 @@ class INCH_PIPILINE_OT_delete_file(Operator):
         file_to_delete = self.define_file()
         os.remove(file_to_delete)
 
+        project_operations.refresh_files_list()
+
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -209,15 +213,7 @@ class INCH_PIPILINE_OT_refresh_files_list(Operator):
 
     def execute(self, context):
 
-        current_folder = bpy.context.scene.inch_current_folder
-
-        local_folder = current_folder.local_path
-        server_folder = current_folder.server_path
-        filter_mask = '*.blend'
-
-        project_operations.compare_lists(
-            local_folder, server_folder, filter_mask)
-        project_operations.redraw_ui()
+        project_operations.refresh_files_list()
 
         return {'FINISHED'}
 # endregion
@@ -296,6 +292,8 @@ class INCH_PIPILINE_OT_save_main_file_dialog(Operator):
 
         bpy.ops.wm.save_as_mainfile(filepath=full_path)
 
+        project_operations.refresh_files_list()
+
         return {'FINISHED'}
 
     def draw(self, context):
@@ -366,6 +364,8 @@ class INCH_PIPILINE_OT_iter_main_file(Operator):
             project_operations.show_message_box('Save the file first!')
             return {'FINISHED'}
         shutil.move(old_mainfile_path, destination_old_mainfile)
+        
+        project_operations.refresh_files_list()
 
         return {'FINISHED'}
 
