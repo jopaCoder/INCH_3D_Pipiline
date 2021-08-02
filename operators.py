@@ -96,7 +96,7 @@ class INCH_PIPILINE_OT_open_file(Operator):
     def invoke(self, context, event):
         if event.ctrl and self.file_type == 'Image':
             soft = project_operations.read_local_paths('g_editor')
-            subprocess.call([soft, self.file_path])
+            subprocess.Popen([soft, self.file_path])
             return {'FINISHED'}
         else:
             return self.execute(context)
