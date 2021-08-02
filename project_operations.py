@@ -12,7 +12,7 @@ from . import templates
 
 def compute_project_local_path(server_path):
     project_folder = os.path.basename(server_path)
-    local_root = read_local_paths()
+    local_root = read_local_paths('local_root')
     project_local_path = os.path.join(local_root, project_folder)
 
     return project_local_path
