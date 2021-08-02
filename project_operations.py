@@ -188,7 +188,7 @@ def compare_lists(local_dir, server_dir):
 
     state = {'only_local_files': 'local',
              'only_server_files': 'server',
-             'duply_local': 'both'}
+             'duply_local': 'synced'}
 
     state_icon = {'only_local_files': 'NODETREE',
                   'only_server_files': 'URL',

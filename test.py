@@ -1,11 +1,31 @@
-import subprocess    
+
+from json import load
+import os
+
+from bpy.types import TOPBAR_MT_file_context_menu
+
+print('......................................................................................')
+path = 'D:\\projects\\Inch_360_2021_08'
+local_root = 'D:\\projects'
 
 
-# path_to_notepad = "C:\\Program Files\\Krita (x64)\\bin\\krita.exe"
-# path_to_file = "D:\\panoform_grid_basic.png"
+for root, dir, filename in os.walk(path):
+    parts, names = os.path.split(root)
+    
+    dots = []
+    spaces = []
+    to_print = ''
 
-# subprocess.call([path_to_notepad, path_to_file])
+    parts = parts.split('\\')
 
-filename = "D:\\Projects\\Stomatidin_2019_056\\Work\\3D\\Project\\Maps\\Screen.png"
+    for part in parts:
+        part = '.'*len(part)
+        dots.append(part)
+       
+        part = ' '*len(part)
+        spaces.append(part)
 
-subprocess.run('cmd /c start "" "'+ filename +'"')
+    for dot in dots:
+        to_print = to_print + dot
+
+    print(to_print + names)

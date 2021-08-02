@@ -296,6 +296,20 @@ class INCH_PIPILINE_OT_creating_project_dialog(Operator):
         return context.window_manager.invoke_props_dialog(self)
 #endregion
 
+class INCH_PIPILINE_OT_sync(Operator):
+    """Sync project"""
+
+    bl_idname = 'wm.sync'
+    bl_label = 'Sync'
+
+    def execute(self, context):
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self, width=400)
+
+
 class INCH_PIPILINE_OT_save_main_file_dialog(Operator):
     """Save current file to Blend files folder"""
 
@@ -439,3 +453,4 @@ def register():
     bpy.utils.register_class(INCH_PIPILINE_OT_delete_file)
     bpy.utils.register_class(INCH_PIPILINE_OT_copy_file)
     bpy.utils.register_class(INCH_PIPILINE_OT_open_file)
+    bpy.utils.register_class(INCH_PIPILINE_OT_sync)

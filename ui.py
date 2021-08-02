@@ -55,7 +55,7 @@ class INCH_PIPILINE_PT_MainUI(Panel):
         second_row = main_col.row()
         second_row.scale_y = 1.5
        # second_row.operator("inch.generate_sub_catalog", text='Change Catalog').lvl = 0
-        second_row.operator("inch.dummy", text='Sync')
+        second_row.operator("wm.sync", text='Sync')
 # endregion
 
 # region list catalog
