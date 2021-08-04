@@ -283,10 +283,11 @@ def initialize_catalog():
     local_path = bpy.context.scene.inch_current_project.local_path
     server_path = bpy.context.scene.inch_current_project.server_path
 
-    for lvl in range(5):
-        item = catalog.add()
-        item.self_lvl = lvl
-        item.trgt_lvl = lvl+1
+    if len(catalog) == 0:
+        for lvl in range(5):
+            item = catalog.add()
+            item.self_lvl = lvl
+            item.trgt_lvl = lvl+1
 
     col = bpy.context.scene.inch_catalogs[0].col
     col.clear()

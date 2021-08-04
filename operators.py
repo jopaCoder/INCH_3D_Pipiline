@@ -302,9 +302,6 @@ class INCH_PIPILINE_OT_sync(Operator):
     bl_idname = 'wm.sync'
     bl_label = 'Sync'
     
-    checkbox: BoolProperty(name='Name',
-                            )
-
     def execute(self, context):
         print('pish')
         return {'FINISHED'}
@@ -337,14 +334,15 @@ class INCH_PIPILINE_OT_sync(Operator):
                 pointers = [tee] * (len(contents) - 1) + [last]
 
                 for pointer, path in zip(pointers, contents):
-                    yield prefix + pointer + path
+                    yield prefix + pointer + path, contents[path]
 
                     extension = branch if pointer == tee else space 
                     yield from tree(contents[path], prefix=prefix+extension)
 
-            for line in tree(path):
+            for name, path in tree(path):
                 item = checkbox.add()
-                item.name = line
+                item.name = name
+                item.local_path = path
 
         return context.window_manager.invoke_props_dialog(self, width=400)
     
