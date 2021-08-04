@@ -101,7 +101,6 @@ class SyncCheckBox(PropertyGroup):
     name: StringProperty()
     checkbox: BoolProperty()
     local_path: StringProperty()
-    server_path: StringProperty()
 
 def register():
     bpy.utils.register_class(FileListItem)
@@ -110,7 +109,6 @@ def register():
     bpy.utils.register_class(CatalogListHandler)
     bpy.utils.register_class(SyncCheckBox)
 
-    bpy.types.Scene.inch_checkbox = CollectionProperty(type=SyncCheckBox)
     bpy.types.Scene.inch_catalogs = CollectionProperty(type=CatalogListHandler)
 
     # список файлов

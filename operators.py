@@ -1,10 +1,11 @@
 import os
+from .properties import SyncCheckBox
 import bpy
 import shutil
 import subprocess    
 
-from bpy.types import FILEBROWSER_PT_directory_path, Operator, Scene
-from bpy.props import BoolProperty, IntProperty, StringProperty, EnumProperty
+from bpy.types import Operator
+from bpy.props import BoolProperty, CollectionProperty, IntProperty, StringProperty, EnumProperty
 
 from . import project_operations
 
@@ -302,15 +303,36 @@ class INCH_PIPILINE_OT_sync(Operator):
     bl_idname = 'wm.sync'
     bl_label = 'Sync'
     
+    checkboxes: CollectionProperty(type=SyncCheckBox)
+
     def execute(self, context):
-        print('pish')
+
+        project_local_path = context.scene.inch_current_project.local_path
+        project_server_path = context.scene.inch_current_project.server_path
+
+        for check in self.checkboxes:
+            if check.checkbox:
+                server_path = check.local_path.replace(project_local_path, project_server_path)
+                files_list = project_operations.compare_lists(check.local_path, server_path)
+
+                for file in files_list:
+                    if files_list[file]['state'] == 'local':
+                        shutil.copy2(files_list[file]['local_path'], files_list[file]['server_path'])
+                    elif files_list[file]['state'] == 'server':
+                        shutil.copy2(files_list[file]['server_path'], files_list[file]['local_path'])
+                   
+                    elif files_list[file]['state'] == 'synced':
+                        print('{} need to compare'.format(file))
+                        
+        project_operations.refresh_files_list()
+
         return {'FINISHED'}
 
     def invoke(self, context, event):
 
         path = context.scene.inch_current_project.local_path
-        scene = context.scene
-        checkbox = scene.inch_checkbox
+        checkbox = self.checkboxes
+        checkbox.clear()
 
         if len(checkbox) == 0:
         # prefix components:
@@ -344,14 +366,13 @@ class INCH_PIPILINE_OT_sync(Operator):
                 item.name = name
                 item.local_path = path
 
-        return context.window_manager.invoke_props_dialog(self, width=400)
+        return context.window_manager.invoke_props_dialog(self)
     
     def draw(self, context):
         layout = self.layout
-        scene = context.scene
-        checkbox = scene.inch_checkbox
-
         col = layout.column(align=True)
+
+        checkbox = self.checkboxes
 
         for item in checkbox:                      
             col.prop(item, 'checkbox', text=item.name)
