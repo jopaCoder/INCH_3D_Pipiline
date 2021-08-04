@@ -1,31 +1,30 @@
 
-from json import load
-import os
-
-from bpy.types import TOPBAR_MT_file_context_menu
-
 print('......................................................................................')
 path = 'D:\\projects\\Inch_360_2021_08'
-local_root = 'D:\\projects'
 
 
-for root, dir, filename in os.walk(path):
-    parts, names = os.path.split(root)
-    
-    dots = []
-    spaces = []
-    to_print = ''
+from pathlib import Path
 
-    parts = parts.split('\\')
+# prefix components:
+space =  '    '
+branch = '│   '
+# pointers:
+tee =    '├── '
+last =   '└── '
 
-    for part in parts:
-        part = '.'*len(part)
-        dots.append(part)
-       
-        part = ' '*len(part)
-        spaces.append(part)
 
-    for dot in dots:
-        to_print = to_print + dot
+def tree(dir_path: Path, prefix: str=''):
+ 
+    contents = list(dir_path.iterdir())
+    # contents each get pointers that are ├── with a final └── :
+    pointers = [tee] * (len(contents) - 1) + [last]
 
-    print(to_print + names)
+    for pointer, path in zip(pointers, contents):
+        yield prefix + pointer + path.name
+        if path.is_dir(): # extend the prefix and recurse:
+            extension = branch if pointer == tee else space 
+            # i.e. space because last, └── , above so no more |
+            yield from tree(path, prefix=prefix+extension)
+
+for line in tree(Path.home() / path):
+    print(line)
