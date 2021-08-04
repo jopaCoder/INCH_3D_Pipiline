@@ -3,7 +3,7 @@ import bpy
 import shutil
 import subprocess    
 
-from bpy.types import FILEBROWSER_PT_directory_path, Operator
+from bpy.types import FILEBROWSER_PT_directory_path, Operator, Scene
 from bpy.props import BoolProperty, IntProperty, StringProperty, EnumProperty
 
 from . import project_operations
@@ -301,13 +301,62 @@ class INCH_PIPILINE_OT_sync(Operator):
 
     bl_idname = 'wm.sync'
     bl_label = 'Sync'
+    
+    checkbox: BoolProperty(name='Name',
+                            )
 
     def execute(self, context):
-
+        print('pish')
         return {'FINISHED'}
 
     def invoke(self, context, event):
+
+        path = context.scene.inch_current_project.local_path
+        scene = context.scene
+        checkbox = scene.inch_checkbox
+
+        if len(checkbox) == 0:
+        # prefix components:
+            space =  '           '
+            branch = '      │   '
+            # pointers:
+            tee =    '      ├── '
+            last =   '      └── '
+
+            def scan_dir(path):
+                dir_contents = {}
+                with os.scandir(path) as it:
+                    for entry in it:
+                        if  entry.is_dir():
+                            dir_contents[entry.name] = entry.path
+                return dir_contents
+
+            def tree(path, prefix: str=''):
+
+                contents = scan_dir(path)
+                pointers = [tee] * (len(contents) - 1) + [last]
+
+                for pointer, path in zip(pointers, contents):
+                    yield prefix + pointer + path
+
+                    extension = branch if pointer == tee else space 
+                    yield from tree(contents[path], prefix=prefix+extension)
+
+            for line in tree(path):
+                item = checkbox.add()
+                item.name = line
+
         return context.window_manager.invoke_props_dialog(self, width=400)
+    
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        checkbox = scene.inch_checkbox
+
+        col = layout.column(align=True)
+
+        for item in checkbox:                      
+            col.prop(item, 'checkbox', text=item.name)
 
 
 class INCH_PIPILINE_OT_save_main_file_dialog(Operator):

@@ -100,7 +100,8 @@ def assing_project(self, context):
     current_project_hodler.type = projects_col[current_project_key]['type']
     current_project_hodler.local_path = projects_col[current_project_key]['local_path']
     current_project_hodler.server_path = projects_col[current_project_key]['server_path']
-
+    
+    context.scene.inch_checkbox.clear()
     initialize_catalog()
 
 
