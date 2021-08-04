@@ -1,10 +1,10 @@
 import os
-from .properties import SyncCheckBox
 import bpy
 import shutil
 import subprocess    
 
 from bpy.types import Operator
+from .properties import SyncCheckBox
 from bpy.props import BoolProperty, CollectionProperty, IntProperty, StringProperty, EnumProperty
 
 from . import project_operations
@@ -323,7 +323,7 @@ class INCH_PIPILINE_OT_sync(Operator):
                    
                     elif files_list[file]['state'] == 'synced':
                         print('{} need to compare'.format(file))
-                        
+
         project_operations.refresh_files_list()
 
         return {'FINISHED'}
