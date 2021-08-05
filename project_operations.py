@@ -245,9 +245,8 @@ def read_local_paths(key):
 
 
 def clear_subcatalog(trgt_lvl, self_lvl):
-    for lvl in range(5 - self_lvl):
-        to_clear = eval(
-            'bpy.context.scene.inch_catalogs[{}].col'.format(lvl + trgt_lvl+1))
+    for lvl in range(4 - self_lvl):
+        to_clear = eval('bpy.context.scene.inch_catalogs[{}].col'.format(lvl + trgt_lvl))
         to_clear.clear()
 
 
@@ -256,24 +255,25 @@ def generate_subcatalog(self, context):
     trgt_lvl = self.trgt_lvl
     self_lvl = self.self_lvl
 
-    col = eval('bpy.context.scene.inch_catalogs[{}].col'.format(trgt_lvl))
-    index = eval('bpy.context.scene.inch_catalogs[{}].index'.format(self_lvl))
-    local_path = eval(
-        'bpy.context.scene.inch_catalogs[{}].col[{}].local_path'.format(self_lvl, index))
-    server_path = eval(
-        'bpy.context.scene.inch_catalogs[{}].col[{}].server_path'.format(self_lvl, index))
+    if self_lvl < 4:
+        col = eval('bpy.context.scene.inch_catalogs[{}].col'.format(trgt_lvl))
+        index = eval('bpy.context.scene.inch_catalogs[{}].index'.format(self_lvl))
+        local_path = eval(
+            'bpy.context.scene.inch_catalogs[{}].col[{}].local_path'.format(self_lvl, index))
+        server_path = eval(
+            'bpy.context.scene.inch_catalogs[{}].col[{}].server_path'.format(self_lvl, index))
 
-    col.clear()
+        col.clear()
 
-    clear_subcatalog(trgt_lvl, self_lvl)
+        clear_subcatalog(trgt_lvl, self_lvl)
 
-    with os.scandir(local_path) as it:
-        for entry in it:
-            if entry.is_dir():
-                item = col.add()
-                item.name = entry.name
-                item.local_path = os.path.join(local_path, entry.name)
-                item.server_path = os.path.join(server_path, entry.name)
+        with os.scandir(local_path) as it:
+            for entry in it:
+                if entry.is_dir():
+                    item = col.add()
+                    item.name = entry.name
+                    item.local_path = os.path.join(local_path, entry.name)
+                    item.server_path = os.path.join(server_path, entry.name)
 
 
 def initialize_catalog():
@@ -283,7 +283,7 @@ def initialize_catalog():
     server_path = bpy.context.scene.inch_current_project.server_path
 
     if len(catalog) == 0:
-        for lvl in range(5):
+        for lvl in range(6):
             item = catalog.add()
             item.self_lvl = lvl
             item.trgt_lvl = lvl+1
