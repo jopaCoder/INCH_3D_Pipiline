@@ -101,6 +101,7 @@ class SyncCheckBox(PropertyGroup):
     name: StringProperty()
     checkbox: BoolProperty()
     local_path: StringProperty()
+    server_path: StringProperty()
 
 def register():
     bpy.utils.register_class(FileListItem)

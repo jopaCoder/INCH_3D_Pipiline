@@ -245,7 +245,7 @@ def read_local_paths(key):
 
 
 def clear_subcatalog(trgt_lvl, self_lvl):
-    for lvl in range(4 - self_lvl):
+    for lvl in range(6 - self_lvl):
         to_clear = eval('bpy.context.scene.inch_catalogs[{}].col'.format(lvl + trgt_lvl))
         to_clear.clear()
 
@@ -283,7 +283,7 @@ def initialize_catalog():
     server_path = bpy.context.scene.inch_current_project.server_path
 
     if len(catalog) == 0:
-        for lvl in range(6):
+        for lvl in range(7):
             item = catalog.add()
             item.self_lvl = lvl
             item.trgt_lvl = lvl+1
@@ -303,7 +303,7 @@ def initialize_catalog():
         show_message_box(message="Someone deleted project folder",
                          title="Макс, не тупи!", icon='ERROR')
 
-    clear_subcatalog(0, 1)
+    clear_subcatalog(1, 2)
 
 
 def create_catalogs(project_type, local_path, server_path):

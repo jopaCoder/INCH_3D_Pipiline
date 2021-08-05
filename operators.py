@@ -307,13 +307,10 @@ class INCH_PIPILINE_OT_sync(Operator):
 
     def execute(self, context):
 
-        project_local_path = context.scene.inch_current_project.local_path
-        project_server_path = context.scene.inch_current_project.server_path
-
         for check in self.checkboxes:
             if check.checkbox:
                 local_path = check.local_path
-                server_path = local_path.replace(project_local_path, project_server_path)
+                server_path = check.server_path
                 files_list = project_operations.compare_lists(check.local_path, server_path)
 
                 for file in files_list:
@@ -332,8 +329,11 @@ class INCH_PIPILINE_OT_sync(Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
+        
+        project_local_path = context.scene.inch_current_project.local_path
+        project_server_path = context.scene.inch_current_project.server_path    
 
-        path = context.scene.inch_current_project.local_path
+        dir_local_path = context.scene.inch_current_project.local_path
         checkbox = self.checkboxes
         checkbox.clear()
 
@@ -345,29 +345,58 @@ class INCH_PIPILINE_OT_sync(Operator):
             tee =    '      ├── '
             last =   '      └── '
 
-            def scan_dir(path):
+            def scan_dirs(local_path):     
+                server_path = local_path.replace(project_local_path, project_server_path)
+               
                 dir_contents = {}
-                with os.scandir(path) as it:
-                    for entry in it:
-                        if  entry.is_dir():
-                            dir_contents[entry.name] = entry.path
+                local_contents = {}
+                server_contents = {}
+
+                
+                def scan_dir(path):
+                    try:
+                        with os.scandir(path) as it:
+                            for entry in it:
+                                if  entry.is_dir():
+                                    yield entry.name, entry.path
+                    except FileNotFoundError:
+                        return ''
+
+                for name, path in scan_dir(local_path): local_contents[name] = path
+                for name, path in scan_dir(server_path): server_contents[name] = path
+
+                only_local = set(list(local_contents.keys())) - set(list(server_contents.keys()))
+                only_server = set(list(server_contents.keys())) - set(list(local_contents.keys()))
+                synced = set(list(local_contents.keys())) - only_local
+
+                for key in only_local:
+                    dir_contents[key] = {'local_path': local_contents[key], 
+                                         'server_path': local_contents[key].replace(local_path, server_path)}
+                for key in only_server:
+                    dir_contents[key+'***'] = {'local_path': server_contents[key].replace(server_path,local_path), 
+                                         'server_path': server_contents[key]}
+                for key in synced:
+                    dir_contents[key] = {'local_path': local_contents[key], 
+                                         'server_path': server_contents[key]}
+
+
                 return dir_contents
 
             def tree(path, prefix: str=''):
 
-                contents = scan_dir(path)
+                contents = scan_dirs(path)
                 pointers = [tee] * (len(contents) - 1) + [last]
-
                 for pointer, name in zip(pointers, contents):
-                    yield prefix + pointer + name, contents[name]
+                    yield prefix + pointer + name, contents[name]['local_path'], contents[name]['server_path']
 
                     extension = branch if pointer == tee else space 
-                    yield from tree(contents[name], prefix=prefix+extension)
+                    yield from tree(contents[name]['local_path'], prefix=prefix+extension)
 
-            for name, path in tree(path):
+            for name, dir_local_path, dir_server_path in tree(project_local_path):
                 item = checkbox.add()
                 item.name = name
-                item.local_path = path
+                item.local_path = dir_local_path
+                item.server_path = dir_server_path
 
         return context.window_manager.invoke_props_dialog(self)
     
