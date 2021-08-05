@@ -312,13 +312,16 @@ class INCH_PIPILINE_OT_sync(Operator):
 
         for check in self.checkboxes:
             if check.checkbox:
-                server_path = check.local_path.replace(project_local_path, project_server_path)
+                local_path = check.local_path
+                server_path = local_path.replace(project_local_path, project_server_path)
                 files_list = project_operations.compare_lists(check.local_path, server_path)
 
                 for file in files_list:
                     if files_list[file]['state'] == 'local':
+                        if not os.path.exists(server_path): shutil.copytree(local_path, server_path)
                         shutil.copy2(files_list[file]['local_path'], files_list[file]['server_path'])
                     elif files_list[file]['state'] == 'server':
+                        if not os.path.exists(local_path): shutil.copytree(server_path, local_path)
                         shutil.copy2(files_list[file]['server_path'], files_list[file]['local_path'])
                    
                     elif files_list[file]['state'] == 'synced':
@@ -355,11 +358,11 @@ class INCH_PIPILINE_OT_sync(Operator):
                 contents = scan_dir(path)
                 pointers = [tee] * (len(contents) - 1) + [last]
 
-                for pointer, path in zip(pointers, contents):
-                    yield prefix + pointer + path, contents[path]
+                for pointer, name in zip(pointers, contents):
+                    yield prefix + pointer + name, contents[name]
 
                     extension = branch if pointer == tee else space 
-                    yield from tree(contents[path], prefix=prefix+extension)
+                    yield from tree(contents[name], prefix=prefix+extension)
 
             for name, path in tree(path):
                 item = checkbox.add()
