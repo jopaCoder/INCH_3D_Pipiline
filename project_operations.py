@@ -383,6 +383,7 @@ def check_folder_type(folder):
     dict = {'mask': mask, 'icon': icon}
     return dict
 
+
 def check_file_type(file):
     filename, ext = os.path.splitext(file)
     #fbx obj alembic 
@@ -397,12 +398,14 @@ def check_file_type(file):
     else:
         return 'Other'
 
+
 def redraw_ui():
     for area in bpy.context.screen.areas:
         if area.type == "VIEW_3D":
             for region in area.regions:
                 if region.type == "UI":
                     region.tag_redraw()
+
 
 def run_vpn():
     if os.getlogin().lower == 'root':
@@ -413,6 +416,7 @@ def run_vpn():
     cmd = 'start /b cmd /c "C:\\Program Files\\OpenVPN\\bin\\openvpn-gui.exe" --connect {}.ovpn'.format(config)
     args = shlex.split(cmd)
     x = subprocess.Popen(args, shell=True)
+
 
 def read_global_projects():
     def load_json(path):
