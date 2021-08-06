@@ -204,12 +204,19 @@ class INCH_PIPILINE_OT_delete_file(Operator):
     def define_file(self):
         index = bpy.context.scene.inch_list_index
         file_to_delete = eval('bpy.context.scene.inch_files_list[{}].{}'.format(index, self.path))
+        
         return file_to_delete
 
     def execute(self, context):
         file_to_delete = self.define_file()
-        os.remove(file_to_delete)
 
+        try:
+            os.remove(file_to_delete)
+        except FileNotFoundError:
+            self.path = 'server_path'
+            file_to_delete = self.define_file()
+            os.remove(file_to_delete)
+            
         project_operations.refresh_files_list()
 
         return {'FINISHED'}
@@ -535,6 +542,20 @@ class INCH_PIPILINE_OT_define_local_path_dialog(Operator):
         return context.window_manager.invoke_props_dialog(self)
 
 
+class INCH_PIPILINE_OT_import_project(Operator):
+    """Import project from global db"""
+
+    bl_idname = 'wm.import_project'
+    bl_label = 'Import Project'
+
+    def execute(self, context):
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+
 
 
 def register():
@@ -554,3 +575,4 @@ def register():
     bpy.utils.register_class(INCH_PIPILINE_OT_copy_file)
     bpy.utils.register_class(INCH_PIPILINE_OT_open_file)
     bpy.utils.register_class(INCH_PIPILINE_OT_sync)
+    bpy.utils.register_class(INCH_PIPILINE_OT_import_project)

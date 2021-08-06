@@ -50,7 +50,7 @@ class INCH_PIPILINE_PT_MainUI(Panel):
         first_row = main_col.row()
         first_row.prop(scene, 'inch_project_enum', text='Project')
         first_row.operator("inch.refresh_projects_list",
-                           text='', icon='DECORATE_LOCKED')
+                           text='', icon='FILE_REFRESH')
 
         second_row = main_col.row()
         second_row.scale_y = 1.5
@@ -130,7 +130,7 @@ class INCH_PIPILINE_PT_MainUI(Panel):
 
 
 class SettingsMenu(bpy.types.Menu):
-    bl_label = "Simple Custom Menu"
+    bl_label = "God mode"
     bl_idname = "OBJECT_MT_simple_custom_menu"
 
     def draw(self, context):
@@ -138,7 +138,7 @@ class SettingsMenu(bpy.types.Menu):
         layout.operator_context = "INVOKE_DEFAULT"
 
         layout.operator("wm.inch_create_project_dialog", text='New Project')
-        layout.operator("inch.dummy", text='Import Project')
+        layout.operator("wm.import_project", text='Import Project')
         layout.operator("wm.setup_local_path_dialog", text='Local Path')
         layout.operator("inch.dummy", text='Archive')
 
