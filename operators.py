@@ -3,6 +3,7 @@ import bpy
 import shutil
 import subprocess    
 import shlex
+import time 
 
 from bpy.types import Operator
 from .properties import SyncCheckBox, ProjectListItem
@@ -339,75 +340,79 @@ class INCH_PIPILINE_OT_sync(Operator):
 
     def invoke(self, context, event):
         
-        project_local_path = context.scene.inch_current_project.local_path
-        project_server_path = context.scene.inch_current_project.server_path    
+        if project_operations.ping_server():
+            project_local_path = context.scene.inch_current_project.local_path
+            project_server_path = context.scene.inch_current_project.server_path    
 
-        dir_local_path = context.scene.inch_current_project.local_path
-        checkbox = self.checkboxes
-        checkbox.clear()
+            dir_local_path = context.scene.inch_current_project.local_path
+            checkbox = self.checkboxes
+            checkbox.clear()
 
-        if len(checkbox) == 0:
-        # prefix components:
-            space =  '           '
-            branch = '      │   '
-            # pointers:
-            tee =    '      ├── '
-            last =   '      └── '
+            if len(checkbox) == 0:
+            # prefix components:
+                space =  '           '
+                branch = '      │   '
+                # pointers:
+                tee =    '      ├── '
+                last =   '      └── '
 
-            def scan_dirs(local_path):     
-                server_path = local_path.replace(project_local_path, project_server_path)
-               
-                dir_contents = {}
-                local_contents = {}
-                server_contents = {}
-
+                def scan_dirs(local_path):     
+                    server_path = local_path.replace(project_local_path, project_server_path)
                 
-                def scan_dir(path):
-                    try:
-                        with os.scandir(path) as it:
-                            for entry in it:
-                                if  entry.is_dir():
-                                    yield entry.name, entry.path
-                    except FileNotFoundError:
-                        return ''
+                    dir_contents = {}
+                    local_contents = {}
+                    server_contents = {}
 
-                for name, path in scan_dir(local_path): local_contents[name] = path
-                for name, path in scan_dir(server_path): server_contents[name] = path
+                    
+                    def scan_dir(path):
+                        try:
+                            with os.scandir(path) as it:
+                                for entry in it:
+                                    if  entry.is_dir():
+                                        yield entry.name, entry.path
+                        except FileNotFoundError:
+                            return ''
 
-                only_local = set(list(local_contents.keys())) - set(list(server_contents.keys()))
-                only_server = set(list(server_contents.keys())) - set(list(local_contents.keys()))
-                synced = set(list(local_contents.keys())) - only_local
+                    for name, path in scan_dir(local_path): local_contents[name] = path
+                    for name, path in scan_dir(server_path): server_contents[name] = path
 
-                for key in only_local:
-                    dir_contents[key] = {'local_path': local_contents[key], 
-                                         'server_path': local_contents[key].replace(local_path, server_path)}
-                for key in only_server:
-                    dir_contents[key+'***'] = {'local_path': server_contents[key].replace(server_path,local_path), 
-                                         'server_path': server_contents[key]}
-                for key in synced:
-                    dir_contents[key] = {'local_path': local_contents[key], 
-                                         'server_path': server_contents[key]}
+                    only_local = set(list(local_contents.keys())) - set(list(server_contents.keys()))
+                    only_server = set(list(server_contents.keys())) - set(list(local_contents.keys()))
+                    synced = set(list(local_contents.keys())) - only_local
+
+                    for key in only_local:
+                        dir_contents[key] = {'local_path': local_contents[key], 
+                                            'server_path': local_contents[key].replace(local_path, server_path)}
+                    for key in only_server:
+                        dir_contents[key+'***'] = {'local_path': server_contents[key].replace(server_path,local_path), 
+                                            'server_path': server_contents[key]}
+                    for key in synced:
+                        dir_contents[key] = {'local_path': local_contents[key], 
+                                            'server_path': server_contents[key]}
 
 
-                return dir_contents
+                    return dir_contents
 
-            def tree(path, prefix: str=''):
+                def tree(path, prefix: str=''):
 
-                contents = scan_dirs(path)
-                pointers = [tee] * (len(contents) - 1) + [last]
-                for pointer, name in zip(pointers, contents):
-                    yield prefix + pointer + name, contents[name]['local_path'], contents[name]['server_path']
+                    contents = scan_dirs(path)
+                    pointers = [tee] * (len(contents) - 1) + [last]
+                    for pointer, name in zip(pointers, contents):
+                        yield prefix + pointer + name, contents[name]['local_path'], contents[name]['server_path']
 
-                    extension = branch if pointer == tee else space 
-                    yield from tree(contents[name]['local_path'], prefix=prefix+extension)
+                        extension = branch if pointer == tee else space 
+                        yield from tree(contents[name]['local_path'], prefix=prefix+extension)
 
-            for name, dir_local_path, dir_server_path in tree(project_local_path):
-                item = checkbox.add()
-                item.name = name
-                item.local_path = dir_local_path
-                item.server_path = dir_server_path
+                for name, dir_local_path, dir_server_path in tree(project_local_path):
+                    item = checkbox.add()
+                    item.name = name
+                    item.local_path = dir_local_path
+                    item.server_path = dir_server_path
 
-        return context.window_manager.invoke_props_dialog(self)
+            return context.window_manager.invoke_props_dialog(self)
+        else: 
+            project_operations.show_message_box('Включи VPN')
+            return {'FINISHED'}
     
     def draw(self, context):
         layout = self.layout
