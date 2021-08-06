@@ -1,6 +1,8 @@
 import json
 import os
 import glob
+import subprocess
+import shlex
 
 import bpy
 
@@ -321,11 +323,15 @@ def create_catalogs(project_type, local_path, server_path):
         os.mkdir(local_path)
     except FileExistsError:
         print('{} is alreary exsists'.format(local_path))
+    except FileNotFoundError:
+        show_message_box('Ну, у тебя походу винт отвалился.', 'Макс, не тупи!')
 
     try:
         os.mkdir(server_path)
     except FileExistsError:
         print('{} is alreary exsists'.format(server_path))
+    except FileNotFoundError:
+        show_message_box('Включи VPN, сука!', 'Макс, не тупи!')
 
     for path in project_struct:
 
@@ -334,6 +340,8 @@ def create_catalogs(project_type, local_path, server_path):
             os.mkdir(os.path.join(server_path, path))
         except FileExistsError:
             print('{} is alreary exsists'.format(path))
+        except FileNotFoundError:
+            show_message_box('Включи VPN, сука!', 'Макс, не тупи!')
 
 
 # endregion
@@ -396,19 +404,27 @@ def redraw_ui():
                 if region.type == "UI":
                     region.tag_redraw()
 
+def run_vpn():
+    if os.getlogin().lower == 'root':
+        config = 'm.kekin'
+    else:
+        config = os.getlogin()
+
+    cmd = 'start /b cmd /c "C:\\Program Files\\OpenVPN\\bin\\openvpn-gui.exe" --connect {}.ovpn'.format(config)
+    args = shlex.split(cmd)
+    x = subprocess.Popen(args, shell=True)
 
 def read_global_projects():
+    def load_json(path):
+        if os.path.exists(path):
+            with open(path, 'r') as projects_db:
+                return json.load(projects_db)
     
-    if os.path.exists(project_system_paths.LOCAL_JSON_PATH):
-        with open(project_system_paths.LOCAL_JSON_PATH, 'r') as projects_db:
-            local_projects_dict = json.load(projects_db)
-    
-    if os.path.exists(project_system_paths.LOCAL_JSON_PATH):
-        with open(project_system_paths.SERVER_JSON_PATH, 'r') as projects_db:
-            global_projects_dict = json.load(projects_db)
+    local_projects_dict = load_json(project_system_paths.LOCAL_JSON_PATH)
+    global_projects_dict = load_json(project_system_paths.SERVER_JSON_PATH)
 
     global_projects = set(list(global_projects_dict.keys())) - set(list(local_projects_dict.keys()))
-
+        
     for key in global_projects:
         yield key, {key: {'local_path': global_projects_dict[key]['local_path'],
                             'server_path': global_projects_dict[key]['server_path'],

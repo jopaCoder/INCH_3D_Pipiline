@@ -1,10 +1,10 @@
 import os
-import types
 import bpy
 import shutil
 import subprocess    
+import shlex
 
-from bpy.types import ColorRampElement, Operator
+from bpy.types import Operator
 from .properties import SyncCheckBox, ProjectListItem
 from bpy.props import BoolProperty, CollectionProperty, IntProperty, StringProperty, EnumProperty
 
@@ -91,8 +91,9 @@ class INCH_PIPILINE_OT_open_file(Operator):
         if self.file_type == 'Blender':
             bpy.ops.wm.open_mainfile(filepath=self.file_path)
         else:
-            #project_operations.show_message_box('Wrong file')
-            subprocess.run('cmd /c start "" "'+ self.file_path +'"')
+            cmd = 'cmd /c start "{}"'.format(self.file_path)
+            args = shlex.split(cmd)
+            subprocess.run(args, shell=True)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -555,6 +556,9 @@ class INCH_PIPILINE_OT_import_project(Operator):
     def execute(self, context):
         project = self.glob_projects[self.index]
         project_operations.write_new_project(project.name, project.type, project.local_path, project.server_path)
+        project_operations.create_catalogs(project.type, project.local_path, project.server_path)
+        project_operations.reload_projects_db()
+
         return {'FINISHED'}
 
     def invoke(self, context, event):

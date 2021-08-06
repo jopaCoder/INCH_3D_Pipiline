@@ -35,6 +35,7 @@ from . import project_operations
 def load_handler(dummy):
     project_operations.reload_projects_db()
     project_operations.initialize_catalog()
+    project_operations.run_vpn()
 
 def register():
     properties.register()
