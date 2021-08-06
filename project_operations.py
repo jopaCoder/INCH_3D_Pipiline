@@ -395,3 +395,22 @@ def redraw_ui():
             for region in area.regions:
                 if region.type == "UI":
                     region.tag_redraw()
+
+
+def read_global_projects():
+    
+    if os.path.exists(project_system_paths.LOCAL_JSON_PATH):
+        with open(project_system_paths.LOCAL_JSON_PATH, 'r') as projects_db:
+            local_projects_dict = json.load(projects_db)
+    
+    if os.path.exists(project_system_paths.LOCAL_JSON_PATH):
+        with open(project_system_paths.SERVER_JSON_PATH, 'r') as projects_db:
+            global_projects_dict = json.load(projects_db)
+
+    global_projects = set(list(global_projects_dict.keys())) - set(list(local_projects_dict.keys()))
+
+    for key in global_projects:
+        yield key, {key: {'local_path': global_projects_dict[key]['local_path'],
+                            'server_path': global_projects_dict[key]['server_path'],
+                            'type': global_projects_dict[key]['type']
+        }}

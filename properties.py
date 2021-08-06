@@ -97,6 +97,7 @@ class FileListItem(PropertyGroup):
         default=False
         )
 
+
 class SyncCheckBox(PropertyGroup):
     name: StringProperty()
     checkbox: BoolProperty()

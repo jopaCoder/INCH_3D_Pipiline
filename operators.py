@@ -1,10 +1,11 @@
 import os
+import types
 import bpy
 import shutil
 import subprocess    
 
-from bpy.types import Operator
-from .properties import SyncCheckBox
+from bpy.types import ColorRampElement, Operator
+from .properties import SyncCheckBox, ProjectListItem
 from bpy.props import BoolProperty, CollectionProperty, IntProperty, StringProperty, EnumProperty
 
 from . import project_operations
@@ -216,7 +217,7 @@ class INCH_PIPILINE_OT_delete_file(Operator):
             self.path = 'server_path'
             file_to_delete = self.define_file()
             os.remove(file_to_delete)
-            
+
         project_operations.refresh_files_list()
 
         return {'FINISHED'}
@@ -548,13 +549,31 @@ class INCH_PIPILINE_OT_import_project(Operator):
     bl_idname = 'wm.import_project'
     bl_label = 'Import Project'
 
-    def execute(self, context):
+    glob_projects: CollectionProperty(type=ProjectListItem)
+    index: IntProperty(default=0)
 
+    def execute(self, context):
+        project = self.glob_projects[self.index]
+        project_operations.write_new_project(project.name, project.type, project.local_path, project.server_path)
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        return context.window_manager.invoke_props_dialog(self)
+        
+        for key, project_dict in project_operations.read_global_projects():
+            project_list_item = self.glob_projects.add()
+            project_list_item.name = key
+            project_list_item.type = project_dict[key]['type']
+            project_list_item.local_path = project_dict[key]['local_path']
+            project_list_item.server_path = project_dict[key]['server_path']
 
+
+        return context.window_manager.invoke_props_dialog(self)
+    
+    def draw(self, context):
+        layout = self.layout
+
+        layout.template_list('INCH_PIPILINE_UL_global_project_browser', '', self,
+                              'glob_projects', self, 'index', rows=10)
 
 
 

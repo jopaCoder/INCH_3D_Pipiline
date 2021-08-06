@@ -2,6 +2,14 @@ import bpy
 from bpy.types import Panel, UIList, Menu
 
 
+class INCH_PIPILINE_UL_global_project_browser(UIList):
+
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
+        row = layout.row(align=True)
+        row.label(text=item.name)
+        row.label(text=item.type)
+
+
 class INCH_PIPILINE_UL_catalog_browser(UIList):
 
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
@@ -148,6 +156,7 @@ def register():
     bpy.utils.register_class(INCH_PIPILINE_UL_files_list)
     bpy.utils.register_class(INCH_PIPILINE_PT_MainUI)
     bpy.utils.register_class(SettingsMenu)
+    bpy.utils.register_class(INCH_PIPILINE_UL_global_project_browser)
 
 def unregister():
     bpy.utils.unregister_class(INCH_PIPILINE_UL_catalog_browser)
