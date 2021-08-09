@@ -104,9 +104,17 @@ class INCH_PIPILINE_OT_open_file(Operator):
             soft = jopa.read_local_paths('g_editor')
             subprocess.Popen([soft, self.file_path])
             return {'FINISHED'}
+        elif event.alt and self.file_type == 'Fbx':
+            bpy.ops.import_scene.fbx(filepath=self.file_path)
+            return {'FINISHED'}
+        elif event.alt and self.file_type == 'Obj':
+            bpy.ops.import_scene.obj(filepath=self.file_path)
+            return {'FINISHED'}
+        elif event.alt and self.file_type == 'Alembic':
+            bpy.ops.wm.alembic_import(filepath=self.file_path)
+            return {'FINISHED'}
         else:
             return self.execute(context)
-
 
 class INCH_PIPILINE_OT_generate_files_list(Operator):
     """Press CTRL to open local folder. Press SHIFT to open server folder"""

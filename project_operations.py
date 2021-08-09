@@ -106,6 +106,17 @@ def assing_project(self, context):
 
     initialize_catalog()
 
+    #region render path
+    root_path = bpy.context.scene.inch_current_project.local_path
+    rel_render_path = 'Work\\3D\\Render'
+    filename = bpy.data.filepath
+    filename = os.path.basename(filename)
+    filename = filename.replace('.blend', '')
+    bpy.context.scene.render.filepath = os.path.join(root_path, rel_render_path, filename, filename)
+    #endregion
+
+
+
 
 def generate_projects_list(self, context):
 
@@ -308,7 +319,8 @@ def initialize_catalog():
     except FileNotFoundError:
         show_message_box(message="Someone deleted project folder",
                          title="Макс, не тупи!", icon='ERROR')
-
+    
+    #потом заменим на rebuild
     clear_subcatalog(1, 2)
 
 
@@ -395,8 +407,12 @@ def check_file_type(file):
         return 'Blender'
     elif ext == '.tif' or ext == '.tiff' or ext == '.jpg' or ext == '.jpeg' or ext == '.png':
         return 'Image'
-    elif ext == '.obj' or ext == '.fbx' or ext == '.abc':
-        return 'Mesh'
+    elif ext == '.obj':
+        return 'Obj'
+    elif ext == '.fbx':
+        return 'Fbx'
+    elif ext == '.abc':
+        return 'Alembic'
     elif ext == '.wav' or ext == '.mp3':
         return 'Sound'
     else:
