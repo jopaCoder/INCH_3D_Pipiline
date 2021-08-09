@@ -354,6 +354,8 @@ class INCH_PIPILINE_OT_sync(Operator):
             project_local_path = context.scene.inch_current_project.local_path
             project_server_path = context.scene.inch_current_project.server_path    
 
+            curr_folder = context.scene.inch_current_folder.name
+
             dir_local_path = context.scene.inch_current_project.local_path
             checkbox = self.checkboxes
             checkbox.clear()
@@ -418,6 +420,7 @@ class INCH_PIPILINE_OT_sync(Operator):
                     item.name = name
                     item.local_path = dir_local_path
                     item.server_path = dir_server_path
+                    if str(name).endswith(curr_folder): item.checkbox = True
 
             return context.window_manager.invoke_props_dialog(self)
         else: 
