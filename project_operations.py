@@ -402,7 +402,6 @@ def check_folder_type(folder):
 
 def check_file_type(file):
     filename, ext = os.path.splitext(file)
-    #fbx obj alembic 
     if ext == '.blend':
         return 'Blender'
     elif ext == '.tif' or ext == '.tiff' or ext == '.jpg' or ext == '.jpeg' or ext == '.png':

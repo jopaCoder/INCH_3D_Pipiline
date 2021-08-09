@@ -336,11 +336,14 @@ class INCH_PIPILINE_OT_sync(Operator):
                 for file in files_list:
                     if files_list[file]['state'] == 'local':
                         if not os.path.exists(server_path): shutil.copytree(local_path, server_path)
-                        shutil.copy2(files_list[file]['local_path'], files_list[file]['server_path'])
+                        #shutil.copy2(files_list[file]['local_path'], files_list[file]['server_path'])
+                        os.popen('copy "{}" "{}"'.format(files_list[file]['local_path'], 
+                                                    files_list[file]['server_path']))
                     elif files_list[file]['state'] == 'server':
                         if not os.path.exists(local_path): shutil.copytree(server_path, local_path)
-                        shutil.copy2(files_list[file]['server_path'], files_list[file]['local_path'])
-                   
+                        #shutil.copy2(files_list[file]['server_path'], files_list[file]['local_path'])
+                        os.popen('copy "{}" "{}"'.format(files_list[file]['server_path'],
+                                                    files_list[file]['local_path']))
                     elif files_list[file]['state'] == 'synced':
                         print('{} need to compare'.format(file))
 
