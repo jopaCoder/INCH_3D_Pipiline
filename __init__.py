@@ -29,13 +29,15 @@ from bpy.app.handlers import persistent
 from . import properties
 from . import operators
 from . import ui
-from . import project_operations
+from . import project_operations as jopa
 
 @persistent
 def load_handler(dummy):
-    project_operations.reload_projects_db()
-    project_operations.initialize_catalog()
-    project_operations.run_vpn()
+    if not jopa.ping_server(): jopa.run_vpn()
+    jopa.reload_projects_db()
+    jopa.initialize_catalog()
+    if not bpy.context.scene.inch_current_folder.name == 'Zalupa': 
+        jopa.refresh_files_list()
 
 def register():
     properties.register()

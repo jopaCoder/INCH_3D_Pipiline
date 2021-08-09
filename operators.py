@@ -3,13 +3,12 @@ import bpy
 import shutil
 import subprocess    
 import shlex
-import time 
 
 from bpy.types import Operator
 from .properties import SyncCheckBox, ProjectListItem
 from bpy.props import BoolProperty, CollectionProperty, IntProperty, StringProperty, EnumProperty
 
-from . import project_operations
+from . import project_operations as jopa
 
 
 class INCH_PIPILINE_OT_dummy(Operator):
@@ -71,7 +70,7 @@ class INCH_PIPILINE_OT_generate_sub_catalog(Operator):
 
     def execute(self, context):
 
-        project_operations.initialize_catalog()
+        jopa.initialize_catalog()
 
         return {'FINISHED'}
 #endregion
@@ -90,7 +89,10 @@ class INCH_PIPILINE_OT_open_file(Operator):
     def execute(self, context):
        
         if self.file_type == 'Blender':
-            bpy.ops.wm.open_mainfile(filepath=self.file_path)
+            try:
+                bpy.ops.wm.open_mainfile(filepath=self.file_path)
+            except RuntimeError:
+                jopa.show_message_box('Copy file to the local first!', 'Люся, прекрати!')
         else:
             cmd = 'cmd /c start "{}"'.format(self.file_path)
             args = shlex.split(cmd)
@@ -99,7 +101,7 @@ class INCH_PIPILINE_OT_open_file(Operator):
 
     def invoke(self, context, event):
         if event.ctrl and self.file_type == 'Image':
-            soft = project_operations.read_local_paths('g_editor')
+            soft = jopa.read_local_paths('g_editor')
             subprocess.Popen([soft, self.file_path])
             return {'FINISHED'}
         else:
@@ -121,9 +123,9 @@ class INCH_PIPILINE_OT_generate_files_list(Operator):
         local_folder = self.local_path
         server_folder = self.server_path
 
-        dict_of_items = project_operations.compare_lists(local_folder, server_folder)
-        project_operations.build_list(dict_of_items)
-        project_operations.redraw_ui()
+        dict_of_items = jopa.compare_lists(local_folder, server_folder)
+        jopa.build_list(dict_of_items)
+        jopa.redraw_ui()
 
         current_folder = bpy.context.scene.inch_current_folder
         current_folder.local_path = local_folder
@@ -140,7 +142,7 @@ class INCH_PIPILINE_OT_generate_files_list(Operator):
             try:
                 os.startfile(self.server_path)
             except FileNotFoundError:
-                project_operations.show_message_box('Включи VPN', 'Макс, не тупи!')
+                jopa.show_message_box('Включи VPN', 'Макс, не тупи!')
             return {'FINISHED'}
         else:
             return self.execute(context)
@@ -166,8 +168,8 @@ class INCH_PIPILINE_OT_copy_file(Operator):
             else:
                 shutil.copy2(file_to, file_from)
         except FileNotFoundError:
-            project_operations.show_message_box('Включи VPN!', 'Макс, не тупи!')
-        project_operations.refresh_files_list()
+            jopa.show_message_box('Включи VPN!', 'Макс, не тупи!')
+        jopa.refresh_files_list()
 
         return {'FINISHED'}
 
@@ -220,7 +222,7 @@ class INCH_PIPILINE_OT_delete_file(Operator):
             file_to_delete = self.define_file()
             os.remove(file_to_delete)
 
-        project_operations.refresh_files_list()
+        jopa.refresh_files_list()
 
         return {'FINISHED'}
 
@@ -247,7 +249,7 @@ class INCH_PIPILINE_OT_refresh_files_list(Operator):
 
     def execute(self, context):
 
-        project_operations.refresh_files_list()
+        jopa.refresh_files_list()
 
         return {'FINISHED'}
 # endregion
@@ -260,7 +262,7 @@ class INCH_PIPILINE_OT_refresh_projects_list(Operator):
     bl_idname = "inch.refresh_projects_list"
 
     def execute(self, context):
-        project_operations.reload_projects_db()
+        jopa.reload_projects_db()
         return {'FINISHED'}
 
 
@@ -292,13 +294,13 @@ class INCH_PIPILINE_OT_creating_project_dialog(Operator):
         project_type = self.project_type
         server_path = self.server_path
 
-        server_path = project_operations.convert_mac_to_human(server_path)
-        local_path = project_operations.compute_project_local_path(server_path)
+        server_path = jopa.convert_mac_to_human(server_path)
+        local_path = jopa.compute_project_local_path(server_path)
 
-        project_operations.write_new_project(
+        jopa.write_new_project(
             project_name, project_type, local_path, server_path)
-        project_operations.reload_projects_db()
-        project_operations.create_catalogs(
+        jopa.reload_projects_db()
+        jopa.create_catalogs(
             project_type, local_path, server_path)
 
         return {'FINISHED'}
@@ -321,7 +323,7 @@ class INCH_PIPILINE_OT_sync(Operator):
             if check.checkbox:
                 local_path = check.local_path
                 server_path = check.server_path
-                files_list = project_operations.compare_lists(check.local_path, server_path)
+                files_list = jopa.compare_lists(check.local_path, server_path)
 
                 for file in files_list:
                     if files_list[file]['state'] == 'local':
@@ -334,13 +336,13 @@ class INCH_PIPILINE_OT_sync(Operator):
                     elif files_list[file]['state'] == 'synced':
                         print('{} need to compare'.format(file))
 
-        project_operations.refresh_files_list()
+        jopa.refresh_files_list()
 
         return {'FINISHED'}
 
     def invoke(self, context, event):
         
-        if project_operations.ping_server():
+        if jopa.ping_server():
             project_local_path = context.scene.inch_current_project.local_path
             project_server_path = context.scene.inch_current_project.server_path    
 
@@ -411,7 +413,7 @@ class INCH_PIPILINE_OT_sync(Operator):
 
             return context.window_manager.invoke_props_dialog(self)
         else: 
-            project_operations.show_message_box('Включи VPN')
+            jopa.show_message_box('Включи VPN')
             return {'FINISHED'}
     
     def draw(self, context):
@@ -445,7 +447,7 @@ class INCH_PIPILINE_OT_save_main_file_dialog(Operator):
 
         bpy.ops.wm.save_as_mainfile(filepath=full_path)
 
-        project_operations.refresh_files_list()
+        jopa.refresh_files_list()
 
         return {'FINISHED'}
 
@@ -515,11 +517,11 @@ class INCH_PIPILINE_OT_iter_main_file(Operator):
         try:
             bpy.ops.wm.save_as_mainfile(filepath=itered_mainfile_name)
         except TypeError:
-            project_operations.show_message_box('Save the file first!')
+            jopa.show_message_box('Save the file first!')
             return {'FINISHED'}
         shutil.move(old_mainfile_path, destination_old_mainfile)
         
-        project_operations.refresh_files_list()
+        jopa.refresh_files_list()
 
         return {'FINISHED'}
 
@@ -531,16 +533,16 @@ class INCH_PIPILINE_OT_define_local_path_dialog(Operator):
     bl_label = 'Setup Path'
 
     local_root: StringProperty(name='Local root',
-                                default=project_operations.read_local_paths('local_root')
+                                default=jopa.read_local_paths('local_root')
                                 )
     g_editor: StringProperty(name='Graphical editor',
-                                default=project_operations.read_local_paths('g_editor')
+                                default=jopa.read_local_paths('g_editor')
                                 )
 
     def execute(self, context):
 
-        project_operations.write_local_root('local_root', self.local_root)
-        project_operations.write_local_root('g_editor', self.g_editor)
+        jopa.write_local_root('local_root', self.local_root)
+        jopa.write_local_root('g_editor', self.g_editor)
 
         return {'FINISHED'}
 
@@ -560,15 +562,15 @@ class INCH_PIPILINE_OT_import_project(Operator):
 
     def execute(self, context):
         project = self.glob_projects[self.index]
-        project_operations.write_new_project(project.name, project.type, project.local_path, project.server_path)
-        project_operations.create_catalogs(project.type, project.local_path, project.server_path)
-        project_operations.reload_projects_db()
+        jopa.write_new_project(project.name, project.type, project.local_path, project.server_path)
+        jopa.create_catalogs(project.type, project.local_path, project.server_path)
+        jopa.reload_projects_db()
 
         return {'FINISHED'}
 
     def invoke(self, context, event):
         
-        for key, project_dict in project_operations.read_global_projects():
+        for key, project_dict in jopa.read_global_projects():
             project_list_item = self.glob_projects.add()
             project_list_item.name = key
             project_list_item.type = project_dict[key]['type']

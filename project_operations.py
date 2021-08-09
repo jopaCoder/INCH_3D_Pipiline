@@ -81,22 +81,23 @@ def reload_projects_db():
 
 def assing_project(self, context):
 
-    try:
-        startup_script = bpy.data.texts['INCH_pipiline_startup_settings.py']
-    except KeyError:
-        startup_script = bpy.data.texts.new(
-            'INCH_pipiline_startup_settings.py')
-    else:
-        startup_script = bpy.data.texts['INCH_pipiline_startup_settings.py']
+    #region startup script
+    # try:
+    #     startup_script = bpy.data.texts['INCH_pipiline_startup_settings.py']
+    # except KeyError:
+    #     startup_script = bpy.data.texts.new(
+    #         'INCH_pipiline_startup_settings.py')
+    # else:
+    #     startup_script = bpy.data.texts['INCH_pipiline_startup_settings.py']
+
+    # startup_script.use_module = True
+    # startup_script.clear()
+    # startup_script.write('import bpy \n \nbpy.context.scene.inch_project_enum = "{}"'.format(current_project_key))
+    #endregion
 
     current_project_key = bpy.context.scene.inch_project_enum
     current_project_hodler = bpy.context.scene.inch_current_project
     projects_col = bpy.context.scene.inch_projects_collection
-
-    startup_script.use_module = True
-    startup_script.clear()
-    startup_script.write(
-        'import bpy \n \nbpy.context.scene.inch_project_enum = "{}"'.format(current_project_key))
 
     current_project_hodler.name = projects_col[current_project_key]['name']
     current_project_hodler.type = projects_col[current_project_key]['type']
@@ -245,7 +246,6 @@ def read_local_paths(key):
 
 # region Catalog
 
-
 def clear_subcatalog(trgt_lvl, self_lvl):
     for lvl in range(6 - self_lvl):
         to_clear = eval('bpy.context.scene.inch_catalogs[{}].col'.format(lvl + trgt_lvl))
@@ -280,15 +280,19 @@ def generate_subcatalog(self, context):
 
 def initialize_catalog():
 
-    catalog = bpy.context.scene.inch_catalogs
-    local_path = bpy.context.scene.inch_current_project.local_path
-    server_path = bpy.context.scene.inch_current_project.server_path
+    context = bpy.context
+
+    catalog = context.scene.inch_catalogs
+    if context.scene.inch_current_project.name == 'Zalupa': assing_project(None, context)
+    local_path = context.scene.inch_current_project.local_path
+    server_path = context.scene.inch_current_project.server_path
 
     if len(catalog) == 0:
         for lvl in range(7):
             item = catalog.add()
             item.self_lvl = lvl
             item.trgt_lvl = lvl+1
+            item.name = '{}'.format(lvl)
 
     col = bpy.context.scene.inch_catalogs[0].col
     col.clear()
