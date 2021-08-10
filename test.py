@@ -16,3 +16,7 @@ file1 = '"D:\\Stomatidin.mp4"'
 file2 = '"D:\\Prev\\Stomatidin.mp4"'
 
 os.popen('copy {} {}'.format(file1, file2))
+
+
+
+\\fileserver.inch\public\exchange\01 Aleksey Vykhristyuk\Projects\Ostroser

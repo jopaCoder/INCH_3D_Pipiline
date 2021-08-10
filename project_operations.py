@@ -49,11 +49,13 @@ def write_new_project(project_name, project_type, local_path, server_path):
 
     # Да бля, просто копирую код...
     if not os.path.exists(server_json_path):
+        projects_dict.clear()
         insert_project(server_json_path)
     else:
         try:  # а что делать? Я тупой!
-            with open(server_json_path, 'r') as local_projects_db:
-                projects_dict = json.load(local_projects_db)
+            with open(server_json_path, 'r') as server_projects_db:
+                projects_dict.clear()
+                projects_dict = json.load(server_projects_db)
 
         except json.decoder.JSONDecodeError:
             insert_project(server_json_path)
