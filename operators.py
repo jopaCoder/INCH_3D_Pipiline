@@ -1,13 +1,14 @@
 import os
 import bpy
 import shutil
-import subprocess    
+import subprocess
 import shlex
 
 from bpy.types import Operator
-from .properties import SyncCheckBox, ProjectListItem
 from bpy.props import BoolProperty, CollectionProperty, IntProperty, StringProperty, EnumProperty
+from bpy.app.handlers import persistent
 
+from .properties import SyncCheckBox, ProjectListItem
 from . import project_operations as jopa
 
 
@@ -25,7 +26,7 @@ class INCH_PIPILINE_OT_dummy(Operator):
         return {'FINISHED'}
 
 
-#region catalog
+# region catalog
 class INCH_PIPILINE_OT_copy_folder_path(Operator):
     """Detailed descroption"""
 
@@ -73,9 +74,10 @@ class INCH_PIPILINE_OT_generate_sub_catalog(Operator):
         jopa.initialize_catalog()
 
         return {'FINISHED'}
-#endregion
+# endregion
 
 # region files
+
 
 class INCH_PIPILINE_OT_open_file(Operator):
     """Press CTRL for alternative soft. Press ALT for import. Press SHIFT for link"""
@@ -87,12 +89,13 @@ class INCH_PIPILINE_OT_open_file(Operator):
     file_type: StringProperty()
 
     def execute(self, context):
-       
+
         if self.file_type == 'Blender':
             try:
                 bpy.ops.wm.open_mainfile(filepath=self.file_path)
             except RuntimeError:
-                jopa.show_message_box('Copy file to the local first!', 'Люся, прекрати!')
+                jopa.show_message_box(
+                    'Copy file to the local first!', 'Люся, прекрати!')
         else:
             cmd = 'cmd /c start "{}"'.format(self.file_path)
             args = shlex.split(cmd)
@@ -115,6 +118,7 @@ class INCH_PIPILINE_OT_open_file(Operator):
             return {'FINISHED'}
         else:
             return self.execute(context)
+
 
 class INCH_PIPILINE_OT_generate_files_list(Operator):
     """Press CTRL to open local folder. Press SHIFT to open server folder"""
@@ -202,7 +206,7 @@ class INCH_PIPILINE_OT_copy_file_path(Operator):
             self.path = self.server_path
         else:
             self.path = self.local_path
-            
+
         return self.execute(context)
 
 
@@ -216,8 +220,9 @@ class INCH_PIPILINE_OT_delete_file(Operator):
 
     def define_file(self):
         index = bpy.context.scene.inch_list_index
-        file_to_delete = eval('bpy.context.scene.inch_files_list[{}].{}'.format(index, self.path))
-        
+        file_to_delete = eval(
+            'bpy.context.scene.inch_files_list[{}].{}'.format(index, self.path))
+
         return file_to_delete
 
     def execute(self, context):
@@ -235,15 +240,15 @@ class INCH_PIPILINE_OT_delete_file(Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        if event.ctrl:          
+        if event.ctrl:
             self.path = 'server_path'
             print('pish')
         else:
             self.path = 'local_path'
         return context.window_manager.invoke_props_dialog(self)
 
-    def draw(self, context):        
-        
+    def draw(self, context):
+
         file_to_delete = self.define_file()
         layout = self.layout
         layout.label(text='Delete {}'.format(file_to_delete))
@@ -262,7 +267,9 @@ class INCH_PIPILINE_OT_refresh_files_list(Operator):
         return {'FINISHED'}
 # endregion
 
-#region project
+# region project
+
+
 class INCH_PIPILINE_OT_refresh_projects_list(Operator):
     """Nothing interesting"""
 
@@ -315,14 +322,15 @@ class INCH_PIPILINE_OT_creating_project_dialog(Operator):
 
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self)
-#endregion
+# endregion
+
 
 class INCH_PIPILINE_OT_sync(Operator):
     """Sync project"""
 
     bl_idname = 'wm.sync'
     bl_label = 'Sync'
-    
+
     checkboxes: CollectionProperty(type=SyncCheckBox)
 
     def execute(self, context):
@@ -335,15 +343,17 @@ class INCH_PIPILINE_OT_sync(Operator):
 
                 for file in files_list:
                     if files_list[file]['state'] == 'local':
-                        if not os.path.exists(server_path): shutil.copytree(local_path, server_path)
+                        if not os.path.exists(server_path):
+                            shutil.copytree(local_path, server_path)
                         #shutil.copy2(files_list[file]['local_path'], files_list[file]['server_path'])
-                        os.popen('copy "{}" "{}"'.format(files_list[file]['local_path'], 
-                                                    files_list[file]['server_path']))
+                        os.popen('copy "{}" "{}"'.format(files_list[file]['local_path'],
+                                                         files_list[file]['server_path']))
                     elif files_list[file]['state'] == 'server':
-                        if not os.path.exists(local_path): shutil.copytree(server_path, local_path)
+                        if not os.path.exists(local_path):
+                            shutil.copytree(server_path, local_path)
                         #shutil.copy2(files_list[file]['server_path'], files_list[file]['local_path'])
                         os.popen('copy "{}" "{}"'.format(files_list[file]['server_path'],
-                                                    files_list[file]['local_path']))
+                                                         files_list[file]['local_path']))
                     elif files_list[file]['state'] == 'synced':
                         print('{} need to compare'.format(file))
 
@@ -352,10 +362,10 @@ class INCH_PIPILINE_OT_sync(Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        
+
         if jopa.ping_server():
             project_local_path = context.scene.inch_current_project.local_path
-            project_server_path = context.scene.inch_current_project.server_path    
+            project_server_path = context.scene.inch_current_project.server_path
 
             curr_folder = context.scene.inch_current_folder.name
 
@@ -364,58 +374,61 @@ class INCH_PIPILINE_OT_sync(Operator):
             checkbox.clear()
 
             if len(checkbox) == 0:
-            # prefix components:
-                space =  '           '
+                # prefix components:
+                space = '           '
                 branch = '      │   '
                 # pointers:
-                tee =    '      ├── '
-                last =   '      └── '
+                tee = '      ├── '
+                last = '      └── '
 
-                def scan_dirs(local_path):     
-                    server_path = local_path.replace(project_local_path, project_server_path)
-                
+                def scan_dirs(local_path):
+                    server_path = local_path.replace(
+                        project_local_path, project_server_path)
+
                     dir_contents = {}
                     local_contents = {}
                     server_contents = {}
 
-                    
                     def scan_dir(path):
                         try:
                             with os.scandir(path) as it:
                                 for entry in it:
-                                    if  entry.is_dir():
+                                    if entry.is_dir():
                                         yield entry.name, entry.path
                         except FileNotFoundError:
                             return ''
 
-                    for name, path in scan_dir(local_path): local_contents[name] = path
-                    for name, path in scan_dir(server_path): server_contents[name] = path
+                    for name, path in scan_dir(local_path):
+                        local_contents[name] = path
+                    for name, path in scan_dir(server_path):
+                        server_contents[name] = path
 
-                    only_local = set(list(local_contents.keys())) - set(list(server_contents.keys()))
-                    only_server = set(list(server_contents.keys())) - set(list(local_contents.keys()))
+                    only_local = set(list(local_contents.keys())) - \
+                        set(list(server_contents.keys()))
+                    only_server = set(list(server_contents.keys())) - \
+                        set(list(local_contents.keys()))
                     synced = set(list(local_contents.keys())) - only_local
 
                     for key in only_local:
-                        dir_contents[key] = {'local_path': local_contents[key], 
-                                            'server_path': local_contents[key].replace(local_path, server_path)}
+                        dir_contents[key] = {'local_path': local_contents[key],
+                                             'server_path': local_contents[key].replace(local_path, server_path)}
                     for key in only_server:
-                        dir_contents[key+'***'] = {'local_path': server_contents[key].replace(server_path,local_path), 
-                                            'server_path': server_contents[key]}
+                        dir_contents[key+'***'] = {'local_path': server_contents[key].replace(server_path, local_path),
+                                                   'server_path': server_contents[key]}
                     for key in synced:
-                        dir_contents[key] = {'local_path': local_contents[key], 
-                                            'server_path': server_contents[key]}
-
+                        dir_contents[key] = {'local_path': local_contents[key],
+                                             'server_path': server_contents[key]}
 
                     return dir_contents
 
-                def tree(path, prefix: str=''):
+                def tree(path, prefix: str = ''):
 
                     contents = scan_dirs(path)
                     pointers = [tee] * (len(contents) - 1) + [last]
                     for pointer, name in zip(pointers, contents):
                         yield prefix + pointer + name, contents[name]['local_path'], contents[name]['server_path']
 
-                        extension = branch if pointer == tee else space 
+                        extension = branch if pointer == tee else space
                         yield from tree(contents[name]['local_path'], prefix=prefix+extension)
 
                 for name, dir_local_path, dir_server_path in tree(project_local_path):
@@ -423,20 +436,21 @@ class INCH_PIPILINE_OT_sync(Operator):
                     item.name = name
                     item.local_path = dir_local_path
                     item.server_path = dir_server_path
-                    if str(name).endswith(curr_folder): item.checkbox = True
+                    if str(name).endswith(curr_folder):
+                        item.checkbox = True
 
             return context.window_manager.invoke_props_dialog(self)
-        else: 
+        else:
             jopa.show_message_box('Включи VPN')
             return {'FINISHED'}
-    
+
     def draw(self, context):
         layout = self.layout
         col = layout.column(align=True)
 
         checkbox = self.checkboxes
 
-        for item in checkbox:                      
+        for item in checkbox:
             col.prop(item, 'checkbox', text=item.name)
 
 
@@ -494,7 +508,7 @@ class INCH_PIPILINE_OT_iter_main_file(Operator):
     def execute(self, context):
 
         def iterate_name(name):
-            
+
             try:
                 name_iterator_01 = int(name[len(name)-7])
             except ValueError:
@@ -534,7 +548,7 @@ class INCH_PIPILINE_OT_iter_main_file(Operator):
             jopa.show_message_box('Save the file first!')
             return {'FINISHED'}
         shutil.move(old_mainfile_path, destination_old_mainfile)
-        
+
         jopa.refresh_files_list()
 
         return {'FINISHED'}
@@ -547,11 +561,11 @@ class INCH_PIPILINE_OT_define_local_path_dialog(Operator):
     bl_label = 'Setup Path'
 
     local_root: StringProperty(name='Local root',
-                                default=jopa.read_local_paths('local_root')
-                                )
+                               default=jopa.read_local_paths('local_root')
+                               )
     g_editor: StringProperty(name='Graphical editor',
-                                default=jopa.read_local_paths('g_editor')
-                                )
+                             default=jopa.read_local_paths('g_editor')
+                             )
 
     def execute(self, context):
 
@@ -576,34 +590,76 @@ class INCH_PIPILINE_OT_import_project(Operator):
 
     def execute(self, context):
         project = self.glob_projects[self.index]
-        jopa.write_new_project(project.name, project.type, project.local_path, project.server_path)
-        jopa.create_catalogs(project.type, project.local_path, project.server_path)
+        jopa.write_new_project(project.name, project.type,
+                               project.local_path, project.server_path)
+        jopa.create_catalogs(
+            project.type, project.local_path, project.server_path)
         jopa.reload_projects_db()
 
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        
+
         for key, project_dict in jopa.read_global_projects():
             project_list_item = self.glob_projects.add()
             project_list_item.name = key
             project_list_item.type = project_dict[key]['type']
             project_list_item.local_path = project_dict[key]['local_path']
             local_root = jopa.read_local_paths('local_root')
-            
+
             if not (project_list_item.local_path).startswith(local_root):
-                project_list_item.local_path = (project_list_item.local_path).replace('D:\\Projects\\', local_root)
+                project_list_item.local_path = (project_list_item.local_path).replace(
+                    'D:\\Projects\\', local_root)
 
             project_list_item.server_path = project_dict[key]['server_path']
 
         return context.window_manager.invoke_props_dialog(self)
-    
+
     def draw(self, context):
         layout = self.layout
 
         layout.template_list('INCH_PIPILINE_UL_global_project_browser', '', self,
-                              'glob_projects', self, 'index', rows=10)
+                             'glob_projects', self, 'index', rows=10)
 
+
+class INCH_PIPILINE_OT_copy_render_job(Operator):
+    """Copy every render to server"""
+
+    bl_idname = 'inch.render_job'
+    bl_label = 'Render job'
+
+    def execute(self, context):
+        job_state = context.scene.inch_inch_copy_job_state
+        rel_path = '\\Work\\3D\\Render'
+        local_root = context.scene.inch_current_project.local_path
+        server_root = context.scene.inch_current_project.server_path
+
+        copy_from = '"D:\\Stomatidin.mp4"'
+        copy_to = '"D:\\Prev\\Stomatidin.mp4"'
+
+        if job_state.state == False:
+            job_state.state = True
+        else:
+            job_state.state = False
+
+        if job_state.command == 'Run copy job':
+            job_state.command = 'Stop copy job'
+        else:
+            job_state.command = 'Run copy job'
+        
+        def copy_job(dummy):
+            print('zalupaaaaaa')
+            #os.popen('copy {} {}'.format(copy_from, copy_to))
+        
+        handler = bpy.app.handlers.render_write
+
+        if not len(handler) == 0:
+            for h in handler:
+                handler.clear()
+        else:
+            handler.append(copy_job)
+        
+        return {'FINISHED'}
 
 
 def register():
@@ -624,3 +680,4 @@ def register():
     bpy.utils.register_class(INCH_PIPILINE_OT_open_file)
     bpy.utils.register_class(INCH_PIPILINE_OT_sync)
     bpy.utils.register_class(INCH_PIPILINE_OT_import_project)
+    bpy.utils.register_class(INCH_PIPILINE_OT_copy_render_job)

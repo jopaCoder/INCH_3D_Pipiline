@@ -130,7 +130,13 @@ class INCH_PIPILINE_PT_MainUI(Panel):
         foutrh_row.scale_x = 2
         foutrh_row.operator("wm.call_menu", text='',
                             icon='PREFERENCES').name = "OBJECT_MT_simple_custom_menu"
-        foutrh_row.separator(factor=10.0)
+        
+        job_state = context.scene.inch_inch_copy_job_state
+        alert_row = foutrh_row.row()
+        alert_row.alert = job_state.state
+        alert_row.operator('inch.render_job', text=job_state.command, emboss=False)
+ 
+        foutrh_row.separator(factor=100.0)
         foutrh_row.operator("wm.inch_save_main_file", text='', icon='BLENDER')
         foutrh_row.operator("inch.iter_main_file", text='', icon='ADD')
         foutrh_row.operator("inch.delete_file", text='', icon='TRASH')

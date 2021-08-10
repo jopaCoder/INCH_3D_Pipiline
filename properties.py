@@ -104,12 +104,21 @@ class SyncCheckBox(PropertyGroup):
     local_path: StringProperty()
     server_path: StringProperty()
 
+
+class CopyJobState(PropertyGroup):
+    command: StringProperty(default='Run copy job')
+    state: BoolProperty(default=False)
+
+
 def register():
     bpy.utils.register_class(FileListItem)
     bpy.utils.register_class(ProjectListItem)
     bpy.utils.register_class(CatalogListItem)
     bpy.utils.register_class(CatalogListHandler)
     bpy.utils.register_class(SyncCheckBox)
+    bpy.utils.register_class(CopyJobState)
+
+    bpy.types.Scene.inch_inch_copy_job_state = PointerProperty(type=CopyJobState)
 
     bpy.types.Scene.inch_catalogs = CollectionProperty(type=CatalogListHandler)
 
