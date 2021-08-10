@@ -23,6 +23,7 @@ bl_info = {
 }
 
 import bpy
+import os
 
 from bpy.app.handlers import persistent
 
@@ -38,6 +39,8 @@ def load_handler(dummy):
     jopa.initialize_catalog()
     if not bpy.context.scene.inch_current_folder.name == 'Zalupa': 
         jopa.refresh_files_list()
+    if not os.path.exists(jopa.read_local_paths('local_root')): 
+        jopa.show_message_box('Залезь в настройки и укажи путь к папке с проектами', 'Макс, не тупи!')
 
 def register():
     properties.register()

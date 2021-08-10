@@ -436,6 +436,7 @@ def run_vpn():
     args = shlex.split(cmd)
     x = subprocess.Popen(args, shell=True)
 
+
 def ping_server():
     hostname = "192.168.18.254"
     response = os.system("ping -n 1 " + hostname)
@@ -444,6 +445,7 @@ def ping_server():
         return True
     else:
         return False
+
 
 def read_global_projects():
     def load_json(path):
