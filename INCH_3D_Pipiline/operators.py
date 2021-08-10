@@ -6,7 +6,6 @@ import shlex
 
 from bpy.types import Operator
 from bpy.props import BoolProperty, CollectionProperty, IntProperty, StringProperty, EnumProperty
-from bpy.app.handlers import persistent
 
 from .properties import SyncCheckBox, ProjectListItem
 from . import project_operations as jopa

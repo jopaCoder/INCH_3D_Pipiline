@@ -101,23 +101,24 @@ def assing_project(self, context):
     current_project_hodler = bpy.context.scene.inch_current_project
     projects_col = bpy.context.scene.inch_projects_collection
 
-    current_project_hodler.name = projects_col[current_project_key]['name']
-    current_project_hodler.type = projects_col[current_project_key]['type']
-    current_project_hodler.local_path = projects_col[current_project_key]['local_path']
-    current_project_hodler.server_path = projects_col[current_project_key]['server_path']
+    try:
+        current_project_hodler.name = projects_col[current_project_key]['name']
+        current_project_hodler.type = projects_col[current_project_key]['type']
+        current_project_hodler.local_path = projects_col[current_project_key]['local_path']
+        current_project_hodler.server_path = projects_col[current_project_key]['server_path']
 
-    initialize_catalog()
+        initialize_catalog()
 
-    #region render path
-    root_path = bpy.context.scene.inch_current_project.local_path
-    rel_render_path = 'Work\\3D\\Render'
-    filename = bpy.data.filepath
-    filename = os.path.basename(filename)
-    filename = filename.replace('.blend', '')
-    bpy.context.scene.render.filepath = os.path.join(root_path, rel_render_path, filename, filename)
-    #endregion
-
-
+        #region render path
+        root_path = bpy.context.scene.inch_current_project.local_path
+        rel_render_path = 'Work\\3D\\Render'
+        filename = bpy.data.filepath
+        filename = os.path.basename(filename)
+        filename = filename.replace('.blend', '')
+        bpy.context.scene.render.filepath = os.path.join(root_path, rel_render_path, filename, filename)
+        #endregion
+    except KeyError:
+        pass
 
 
 def generate_projects_list(self, context):
