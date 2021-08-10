@@ -15,8 +15,8 @@ bl_info = {
     "name" : "INCH_3D_PIPILINE",
     "author" : "Jopa",
     "description" : "",
-    "blender" : (2, 80, 0),
-    "version" : (0, 0, 1),
+    "blender" : (2, 93, 0),
+    "version" : (1, 0, 0),
     "location" : "",
     "warning" : "",
     "category" : "Interface"
