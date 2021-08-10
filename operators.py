@@ -630,12 +630,6 @@ class INCH_PIPILINE_OT_copy_render_job(Operator):
 
     def execute(self, context):
         job_state = context.scene.inch_inch_copy_job_state
-        rel_path = '\\Work\\3D\\Render'
-        local_root = context.scene.inch_current_project.local_path
-        server_root = context.scene.inch_current_project.server_path
-
-        copy_from = '"D:\\Stomatidin.mp4"'
-        copy_to = '"D:\\Prev\\Stomatidin.mp4"'
 
         if job_state.state == False:
             job_state.state = True
@@ -648,8 +642,19 @@ class INCH_PIPILINE_OT_copy_render_job(Operator):
             job_state.command = 'Run copy job'
         
         def copy_job(dummy):
-            print('zalupaaaaaa')
-            #os.popen('copy {} {}'.format(copy_from, copy_to))
+            rel_path = 'Work\\3D\\Render'
+            local_root = bpy.context.scene.inch_current_project.local_path
+            server_root = bpy.context.scene.inch_current_project.server_path
+            
+            local_path = os.path.join(local_root, rel_path)
+            server_path = os.path.join(server_root, rel_path)
+
+            files = jopa.compare_lists(local_path, server_path)
+
+            for file in files:
+                if files[file]['state'] == 'local':
+                    os.popen('copy "{}" "{}"'.format(files[file]['local_path'], files[file]['server_path']))
+
         
         handler = bpy.app.handlers.render_write
 
