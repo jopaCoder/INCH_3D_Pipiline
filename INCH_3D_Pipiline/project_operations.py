@@ -1,4 +1,5 @@
 import json
+from json.decoder import JSONDecodeError
 import os
 import glob
 import subprocess
@@ -67,41 +68,30 @@ def write_new_project(project_name, project_type, local_path, server_path):
 def reload_projects_db():
 
     if os.path.exists(project_system_paths.LOCAL_JSON_PATH):
-        with open(project_system_paths.LOCAL_JSON_PATH, 'r') as projects_db:
-            local_projects_dict = json.load(projects_db)
+        try:
+            with open(project_system_paths.LOCAL_JSON_PATH, 'r') as projects_db:
+                local_projects_dict = json.load(projects_db)
 
-        projects_collection = bpy.context.scene.inch_projects_collection
-        projects_collection.clear()
+            projects_collection = bpy.context.scene.inch_projects_collection
+            projects_collection.clear()
 
-        for project_key in local_projects_dict.keys():
-            collection_item = projects_collection.add()
-            collection_item.name = project_key
-            collection_item.type = local_projects_dict[project_key]['type']
-            collection_item.local_path = local_projects_dict[project_key]['local_path']
-            collection_item.server_path = local_projects_dict[project_key]['server_path']
+            for project_key in local_projects_dict.keys():
+                collection_item = projects_collection.add()
+                collection_item.name = project_key
+                collection_item.type = local_projects_dict[project_key]['type']
+                collection_item.local_path = local_projects_dict[project_key]['local_path']
+                collection_item.server_path = local_projects_dict[project_key]['server_path']
+        except json.decoder.JSONDecodeError:
+            pass
 
 
 def assing_project(self, context):
 
-    #region startup script
-    # try:
-    #     startup_script = bpy.data.texts['INCH_pipiline_startup_settings.py']
-    # except KeyError:
-    #     startup_script = bpy.data.texts.new(
-    #         'INCH_pipiline_startup_settings.py')
-    # else:
-    #     startup_script = bpy.data.texts['INCH_pipiline_startup_settings.py']
-
-    # startup_script.use_module = True
-    # startup_script.clear()
-    # startup_script.write('import bpy \n \nbpy.context.scene.inch_project_enum = "{}"'.format(current_project_key))
-    #endregion
-
-    current_project_key = bpy.context.scene.inch_project_enum
-    current_project_hodler = bpy.context.scene.inch_current_project
-    projects_col = bpy.context.scene.inch_projects_collection
-
     try:
+        current_project_key = bpy.context.scene.inch_project_enum
+        current_project_hodler = bpy.context.scene.inch_current_project
+        projects_col = bpy.context.scene.inch_projects_collection
+
         current_project_hodler.name = projects_col[current_project_key]['name']
         current_project_hodler.type = projects_col[current_project_key]['type']
         current_project_hodler.local_path = projects_col[current_project_key]['local_path']
@@ -287,11 +277,7 @@ def generate_subcatalog(self, context):
 def initialize_catalog():
 
     context = bpy.context
-
     catalog = context.scene.inch_catalogs
-    if context.scene.inch_current_project.name == 'Zalupa': assing_project(None, context)
-    local_path = context.scene.inch_current_project.local_path
-    server_path = context.scene.inch_current_project.server_path
 
     if len(catalog) == 0:
         for lvl in range(7):
@@ -303,20 +289,26 @@ def initialize_catalog():
     col = bpy.context.scene.inch_catalogs[0].col
     col.clear()
 
-    try:
-        with os.scandir(local_path) as it:
-            for entry in it:
-                if entry.is_dir:
-                    item = col.add()
-                    item.name = entry.name
-                    item.local_path = os.path.join(local_path, entry.name)
-                    item.server_path = os.path.join(server_path, entry.name)
-    except FileNotFoundError:
-        show_message_box(message="Someone deleted project folder",
-                         title="Макс, не тупи!", icon='ERROR')
-    
-    #потом заменим на rebuild
-    clear_subcatalog(1, 2)
+    if context.scene.inch_current_project.name == 'Zalupa': 
+        assing_project(None, context)
+    else:
+        local_path = context.scene.inch_current_project.local_path
+        server_path = context.scene.inch_current_project.server_path
+
+        try:
+            with os.scandir(local_path) as it:
+                for entry in it:
+                    if entry.is_dir:
+                        item = col.add()
+                        item.name = entry.name
+                        item.local_path = os.path.join(local_path, entry.name)
+                        item.server_path = os.path.join(server_path, entry.name)
+        except FileNotFoundError:
+            show_message_box(message="Someone deleted project folder",
+                            title="Макс, не тупи!", icon='ERROR')
+        
+        #потом заменим на rebuild
+        clear_subcatalog(1, 2)
 
 
 def create_catalogs(project_type, local_path, server_path):
@@ -454,9 +446,13 @@ def set_render_path():
 
 def read_global_projects():
     def load_json(path):
-        if os.path.exists(path):
+        try:
             with open(path, 'r') as projects_db:
                 return json.load(projects_db)
+        except FileNotFoundError:
+            return {'':''}
+        except json.decoder.JSONDecodeError:
+            return {'':''}
     
     local_projects_dict = load_json(project_system_paths.LOCAL_JSON_PATH)
     global_projects_dict = load_json(project_system_paths.SERVER_JSON_PATH)

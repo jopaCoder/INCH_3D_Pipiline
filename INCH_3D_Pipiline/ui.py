@@ -169,3 +169,4 @@ def unregister():
     bpy.utils.unregister_class(INCH_PIPILINE_UL_files_list)
     bpy.utils.unregister_class(INCH_PIPILINE_PT_MainUI)
     bpy.utils.unregister_class(SettingsMenu)
+    bpy.utils.unregister_class(INCH_PIPILINE_UL_global_project_browser)

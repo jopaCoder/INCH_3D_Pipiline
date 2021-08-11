@@ -137,3 +137,20 @@ def register():
         type=ProjectListItem)
     bpy.types.Scene.inch_current_folder = PointerProperty(
         type=ProjectListItem)
+
+def unregister():
+    bpy.utils.unregister_class(FileListItem)
+    bpy.utils.unregister_class(ProjectListItem)
+    bpy.utils.unregister_class(CatalogListItem)
+    bpy.utils.unregister_class(CatalogListHandler)
+    bpy.utils.unregister_class(SyncCheckBox)
+    bpy.utils.unregister_class(CopyJobState)
+
+    del bpy.types.Scene.inch_inch_copy_job_state
+    del bpy.types.Scene.inch_catalogs
+    del bpy.types.Scene.inch_files_list
+    del bpy.types.Scene.inch_list_index
+    del bpy.types.Scene.inch_projects_collection
+    del bpy.types.Scene.inch_project_enum
+    del bpy.types.Scene.inch_current_project
+    del bpy.types.Scene.inch_current_folder
