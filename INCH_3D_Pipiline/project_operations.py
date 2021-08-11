@@ -109,14 +109,6 @@ def assing_project(self, context):
 
         initialize_catalog()
 
-        #region render path
-        root_path = bpy.context.scene.inch_current_project.local_path
-        rel_render_path = 'Work\\3D\\Render'
-        filename = bpy.data.filepath
-        filename = os.path.basename(filename)
-        filename = filename.replace('.blend', '')
-        bpy.context.scene.render.filepath = os.path.join(root_path, rel_render_path, filename, filename)
-        #endregion
     except KeyError:
         pass
 
@@ -448,6 +440,16 @@ def ping_server():
         return True
     else:
         return False
+
+
+def set_render_path():
+
+    root_path = bpy.context.scene.inch_current_project.local_path
+    rel_render_path = 'Work\\3D\\Render'
+    filename = bpy.data.filepath
+    filename = os.path.basename(filename)
+    filename = filename.replace('.blend', '')
+    bpy.context.scene.render.filepath = os.path.join(root_path, rel_render_path, filename, filename + '_')
 
 
 def read_global_projects():

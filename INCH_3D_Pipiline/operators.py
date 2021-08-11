@@ -96,12 +96,15 @@ class INCH_PIPILINE_OT_open_file(Operator):
                 jopa.show_message_box(
                     'Copy file to the local first!', 'Люся, прекрати!')
         else:
-            cmd = 'cmd /c start "{}"'.format(self.file_path)
+            cmd = 'cmd /c start "{}"'.format(self.file_path, '')
             args = shlex.split(cmd)
             subprocess.run(args, shell=True)
         return {'FINISHED'}
 
     def invoke(self, context, event):
+        if event.shift and self.file_type == 'Blender':
+            bpy.ops.wm.link(self.file_path, 'INVOKE_DEFAULT')
+            return {'FINISHED'}
         if event.ctrl and self.file_type == 'Image':
             soft = jopa.read_local_paths('g_editor')
             subprocess.Popen([soft, self.file_path])
@@ -476,6 +479,8 @@ class INCH_PIPILINE_OT_save_main_file_dialog(Operator):
 
         jopa.refresh_files_list()
 
+        jopa.set_render_path()
+
         return {'FINISHED'}
 
     def draw(self, context):
@@ -549,6 +554,7 @@ class INCH_PIPILINE_OT_iter_main_file(Operator):
         shutil.move(old_mainfile_path, destination_old_mainfile)
 
         jopa.refresh_files_list()
+        jopa.set_render_path()
 
         return {'FINISHED'}
 
@@ -641,12 +647,13 @@ class INCH_PIPILINE_OT_copy_render_job(Operator):
             job_state.command = 'Run copy job'
         
         def copy_job(dummy):
-            rel_path = 'Work\\3D\\Render'
             local_root = bpy.context.scene.inch_current_project.local_path
             server_root = bpy.context.scene.inch_current_project.server_path
             
-            local_path = os.path.join(local_root, rel_path)
-            server_path = os.path.join(server_root, rel_path)
+            local_path, tail = os.path.split(bpy.context.scene.render.filepath)
+            server_path = local_path.replace(local_root, server_root)
+
+            if not os.path.exists(server_path): shutil.copytree(local_path, server_path)
 
             files = jopa.compare_lists(local_path, server_path)
 
