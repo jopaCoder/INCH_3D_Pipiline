@@ -94,7 +94,7 @@ class INCH_PIPILINE_OT_open_file(Operator):
                 bpy.ops.wm.open_mainfile(filepath=self.file_path)
             except RuntimeError:
                 jopa.show_message_box(
-                    'Copy file to the local first!', 'Люся, прекрати!')
+                    'Сперва скопируй файл!', 'Не стоит запускать файлы с сервака')
         else:
             cmd = 'cmd /c start "{}"'.format(self.file_path, '')
             args = shlex.split(cmd)
@@ -156,7 +156,7 @@ class INCH_PIPILINE_OT_generate_files_list(Operator):
             try:
                 os.startfile(self.server_path)
             except FileNotFoundError:
-                jopa.show_message_box('Включи VPN', 'Макс, не тупи!')
+                jopa.show_message_box(self.server_path, 'Нет доступа')
             return {'FINISHED'}
         else:
             return self.execute(context)
@@ -182,7 +182,7 @@ class INCH_PIPILINE_OT_copy_file(Operator):
             else:
                 shutil.copy2(file_to, file_from)
         except FileNotFoundError:
-            jopa.show_message_box('Включи VPN!', 'Макс, не тупи!')
+            jopa.show_message_box(file_to, 'Файл не существует или к нему нет доступа')
         jopa.refresh_files_list()
 
         return {'FINISHED'}

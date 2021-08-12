@@ -34,7 +34,7 @@ from . import project_operations as jopa
 
 @persistent
 def load_handler(dummy):
-    # if not jopa.ping_server(): jopa.run_vpn()
+    if not jopa.ping_server(): jopa.show_message_box('А ты точно включил VPN?', 'Сервер не отвечает!')
     jopa.initialize_catalog()
     jopa.reload_projects_db()
     if not bpy.context.scene.inch_current_folder.name == 'Zalupa': 

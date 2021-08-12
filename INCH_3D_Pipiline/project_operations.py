@@ -336,14 +336,14 @@ def create_catalogs(project_type, local_path, server_path):
     except FileExistsError:
         print('{} is alreary exsists'.format(local_path))
     except FileNotFoundError:
-        show_message_box('Ну, у тебя походу винт отвалился.', 'Макс, не тупи!')
+        show_message_box('Указанный в настройках путь, не существует!\n{}'.format(local_path), 'Корневой локальный каталог')
 
     try:
         os.mkdir(server_path)
     except FileExistsError:
         print('{} is alreary exsists'.format(server_path))
     except FileNotFoundError:
-        show_message_box('Включи VPN, сука!', 'Макс, не тупи!')
+        show_message_box('Серверный путь, не существует!\n{}'.format(server_path), 'Корневой серверный каталог')
 
     for path in project_struct:
 
@@ -353,7 +353,7 @@ def create_catalogs(project_type, local_path, server_path):
         except FileExistsError:
             print('{} is alreary exsists'.format(path))
         except FileNotFoundError:
-            show_message_box('Включи VPN, сука!', 'Макс, не тупи!')
+            if not ping_server(): show_message_box('Включи VPN, сука!', 'Макс, не тупи!')
 
 
 # endregion
