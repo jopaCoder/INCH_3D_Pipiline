@@ -34,6 +34,8 @@ from . import project_operations as jopa
 
 @persistent
 def load_handler(dummy):
+
+    
     if not jopa.ping_server(): jopa.run_vpn()
     jopa.initialize_catalog()
     print('initialize catalog')
