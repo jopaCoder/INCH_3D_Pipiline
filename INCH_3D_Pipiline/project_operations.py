@@ -23,46 +23,31 @@ def compute_project_local_path(server_path):
 
 def write_new_project(project_name, project_type, local_path, server_path):
 
-    projects_dict = {}
     local_json_path = project_system_paths.LOCAL_JSON_PATH
     server_json_path = project_system_paths.SERVER_JSON_PATH
 
-    def insert_project(json_path):
+    def load_db(json_path):
+        try:
+            with open(json_path, 'r') as projects_db:
+                projects_dict = json.load(projects_db)
+            return projects_dict
+        except FileNotFoundError:
+            return {}
+        except json.decoder.JSONDecodeError:
+            return {}
+
+    def append_project(json_path):
+        projects_dict = load_db(json_path)
         projects_dict[project_name] = {
             'type': project_type, 'local_path': local_path, 'server_path': server_path}
-        # Я не умею создавать папки! думай что-то или создай папку для сервер_дб вручную
+
         with open(json_path, 'w') as projects_db:
             json.dump(projects_dict, projects_db, indent=2)
 
-    # Проверяем существование файлов бд
-    if not os.path.exists(local_json_path):
-        insert_project(local_json_path)
-    else:
-        try:  # проверяем, не пустой ли файл. Нужно, так как открываем дб и дополняем
-            with open(local_json_path, 'r') as local_projects_db:
-                projects_dict = json.load(local_projects_db)
 
-        except json.decoder.JSONDecodeError:
-            insert_project(local_json_path)
 
-        else:
-            insert_project(local_json_path)
-
-    # Да бля, просто копирую код...
-    if not os.path.exists(server_json_path):
-        projects_dict.clear()
-        insert_project(server_json_path)
-    else:
-        try:  # а что делать? Я тупой!
-            with open(server_json_path, 'r') as server_projects_db:
-                projects_dict.clear()
-                projects_dict = json.load(server_projects_db)
-
-        except json.decoder.JSONDecodeError:
-            insert_project(server_json_path)
-
-        else:
-            insert_project(server_json_path)
+    append_project(local_json_path)
+    append_project(server_json_path)
 
 
 def reload_projects_db():
@@ -125,10 +110,10 @@ def read_global_projects():
                 return json.load(projects_db)
         except FileNotFoundError:
             show_message_box('Кто - то удалил файл с проектами\n{}'.format(path))
-            return {'':''}
+            return {}
         except json.decoder.JSONDecodeError:
             show_message_box('Кто - то покалякал в файле проектов\n{}'.format(path))
-            return {'':''}
+            return {}
     
     local_projects_dict = load_json(project_system_paths.LOCAL_JSON_PATH)
     global_projects_dict = load_json(project_system_paths.SERVER_JSON_PATH)
