@@ -27,18 +27,26 @@ class INCH_PIPILINE_OT_dummy(Operator):
 
 # region catalog
 class INCH_PIPILINE_OT_copy_folder_path(Operator):
-    """Detailed descroption"""
+    """Copy folder path. Press CTRL for server path"""
 
     bl_label = "Copy folder path"
     bl_idname = "inch.copy_folder_path"
 
-    def execute(self, context):
-        path = bpy.context.scene.inch_current_folder.local_path
+    path: StringProperty()
 
-        command = 'echo ' + path.strip() + '| clip'
+    def execute(self, context):
+        
+        command = 'echo {} | clip'.format(self.path.strip())
         os.system(command)
 
         return {'FINISHED'}
+
+    def invoke(self, context, event):
+        if event.ctrl:
+            self.path = bpy.context.scene.inch_current_folder.server_path
+        else:
+            self.path = bpy.context.scene.inch_current_folder.local_path
+        return self.execute(context)
 
 
 class INCH_PIPILINE_OT_open_folder(Operator):
@@ -55,7 +63,10 @@ class INCH_PIPILINE_OT_open_folder(Operator):
     def invoke(self, context, event):
         if event.ctrl:
             path = bpy.context.scene.inch_current_folder.server_path
-            os.startfile(path)
+            try:
+                os.startfile(path)
+            except FileNotFoundError:
+                jopa.show_message_box(path, 'Нет доступа')
             return {'FINISHED'}
         return self.execute(context)
 
@@ -293,7 +304,7 @@ class INCH_PIPILINE_OT_creating_project_dialog(Operator):
 
     server_path: StringProperty(
         name='Server Path',
-        default='D:\\projects\\Pipiline\\server\\Stomatidin_2019_056'
+        default=''
     )
 
     project_type: EnumProperty(

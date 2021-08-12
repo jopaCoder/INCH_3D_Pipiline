@@ -71,7 +71,7 @@ def reload_projects_db():
 
 
 def assing_project(self, context):
-
+    
     try:
         current_project_key = bpy.context.scene.inch_project_enum
         current_project_hodler = bpy.context.scene.inch_current_project
@@ -81,6 +81,20 @@ def assing_project(self, context):
         current_project_hodler.type = projects_col[current_project_key]['type']
         current_project_hodler.local_path = projects_col[current_project_key]['local_path']
         current_project_hodler.server_path = projects_col[current_project_key]['server_path']
+
+        try:
+            startup_script = bpy.data.texts['INCH_pipiline_startup_settings.py']
+        except KeyError:
+            startup_script = bpy.data.texts.new(
+                'INCH_pipiline_startup_settings.py')
+
+        else:
+            startup_script = bpy.data.texts['INCH_pipiline_startup_settings.py']
+
+        startup_script.use_module = True
+        startup_script.clear()
+        startup_script.write('import bpy \n \nbpy.context.scene.inch_project_enum = "{}"'.format(current_project_key))
+
 
         initialize_catalog()
 
@@ -195,16 +209,16 @@ def compare_lists(local_dir, server_dir):
     keys = ('only_local_files', 'only_server_files', 'duply_local')
 
     state = {'only_local_files': 'local',
-             'only_server_files': 'server',
-             'duply_local': 'synced'}
+            'only_server_files': 'server',
+            'duply_local': 'synced'}
 
     state_icon = {'only_local_files': 'NODETREE',
-                  'only_server_files': 'URL',
-                  'duply_local': 'DOT'}
+                'only_server_files': 'URL',
+                'duply_local': 'DOT'}
 
     alert = {'only_local_files': False,
-             'only_server_files': True,
-             'duply_local': False}
+            'only_server_files': True,
+            'duply_local': False}
 
     for index in range(3):
         for item in list_of_lists[index]:

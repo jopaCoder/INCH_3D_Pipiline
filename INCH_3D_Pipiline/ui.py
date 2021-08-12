@@ -57,8 +57,6 @@ class INCH_PIPILINE_PT_MainUI(Panel):
         main_col = layout.column()
         first_row = main_col.row()
         first_row.prop(scene, 'inch_project_enum', text='Project')
-        first_row.operator("inch.refresh_projects_list",
-                           text='', icon='FILE_REFRESH')
 
         second_row = main_col.row()
         second_row.scale_y = 1.5
