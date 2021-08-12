@@ -34,13 +34,9 @@ from . import project_operations as jopa
 
 @persistent
 def load_handler(dummy):
-
-    
-    if not jopa.ping_server(): jopa.run_vpn()
+    # if not jopa.ping_server(): jopa.run_vpn()
     jopa.initialize_catalog()
-    print('initialize catalog')
     jopa.reload_projects_db()
-    print('reload catalog')
     if not bpy.context.scene.inch_current_folder.name == 'Zalupa': 
         jopa.refresh_files_list()
     if not os.path.exists(jopa.read_local_paths('local_root')): 

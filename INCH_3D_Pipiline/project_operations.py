@@ -117,6 +117,30 @@ def generate_projects_list(self, context):
 
     return col_items
 
+
+def read_global_projects():
+    def load_json(path):
+        try:
+            with open(path, 'r') as projects_db:
+                return json.load(projects_db)
+        except FileNotFoundError:
+            show_message_box('Кто - то удалил файл с проектами\n{}'.format(path))
+            return {'':''}
+        except json.decoder.JSONDecodeError:
+            show_message_box('Кто - то покалякал в файле проектов\n{}'.format(path))
+            return {'':''}
+    
+    local_projects_dict = load_json(project_system_paths.LOCAL_JSON_PATH)
+    global_projects_dict = load_json(project_system_paths.SERVER_JSON_PATH)
+
+    global_projects = set(list(global_projects_dict.keys())) - set(list(local_projects_dict.keys()))
+        
+    for key in global_projects:
+        yield key, {key: {'local_path': global_projects_dict[key]['local_path'],
+                            'server_path': global_projects_dict[key]['server_path'],
+                            'type': global_projects_dict[key]['type']
+        }}
+
 # endregion
 
 # region List
@@ -444,23 +468,3 @@ def set_render_path():
     bpy.context.scene.render.filepath = os.path.join(root_path, rel_render_path, filename, filename + '_')
 
 
-def read_global_projects():
-    def load_json(path):
-        try:
-            with open(path, 'r') as projects_db:
-                return json.load(projects_db)
-        except FileNotFoundError:
-            return {'':''}
-        except json.decoder.JSONDecodeError:
-            return {'':''}
-    
-    local_projects_dict = load_json(project_system_paths.LOCAL_JSON_PATH)
-    global_projects_dict = load_json(project_system_paths.SERVER_JSON_PATH)
-
-    global_projects = set(list(global_projects_dict.keys())) - set(list(local_projects_dict.keys()))
-        
-    for key in global_projects:
-        yield key, {key: {'local_path': global_projects_dict[key]['local_path'],
-                            'server_path': global_projects_dict[key]['server_path'],
-                            'type': global_projects_dict[key]['type']
-        }}

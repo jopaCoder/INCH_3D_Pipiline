@@ -604,17 +604,17 @@ class INCH_PIPILINE_OT_import_project(Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-
+        self.glob_projects.clear()
         for key, project_dict in jopa.read_global_projects():
             project_list_item = self.glob_projects.add()
             project_list_item.name = key
             project_list_item.type = project_dict[key]['type']
             project_list_item.local_path = project_dict[key]['local_path']
+            
             local_root = jopa.read_local_paths('local_root')
-
             if not (project_list_item.local_path).startswith(local_root):
-                project_list_item.local_path = (project_list_item.local_path).replace(
-                    'D:\\Projects\\', local_root)
+                project_folder = os.path.basename(project_list_item.local_path)
+                project_list_item.local_path = os.path.join(local_root, project_folder)
 
             project_list_item.server_path = project_dict[key]['server_path']
 
