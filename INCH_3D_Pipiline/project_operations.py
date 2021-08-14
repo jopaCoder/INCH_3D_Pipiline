@@ -15,7 +15,7 @@ from . import templates
 
 def compute_project_local_path(server_path):
     project_folder = os.path.basename(server_path)
-    local_root = read_local_paths('local_root')
+    local_root = read_paths_settings('local_root')
     project_local_path = os.path.join(local_root, project_folder)
 
     return project_local_path
@@ -35,16 +35,22 @@ def write_new_project(project_name, project_type, local_path, server_path):
             return {}
         except json.decoder.JSONDecodeError:
             return {}
+    
+    def check_project_duplicates(db, key):
+        for _key in db:
+            if _key == key:
+                return True
+        return False
 
     def append_project(json_path):
         projects_dict = load_db(json_path)
-        projects_dict[project_name] = {
-            'type': project_type, 'local_path': local_path, 'server_path': server_path}
 
-        with open(json_path, 'w') as projects_db:
-            json.dump(projects_dict, projects_db, indent=2)
+        if not check_project_duplicates(projects_dict, project_name):
+            projects_dict[project_name] = {
+                'type': project_type, 'local_path': local_path, 'server_path': server_path}
 
-
+            with open(json_path, 'w') as projects_db:
+                json.dump(projects_dict, projects_db, indent=2)      
 
     append_project(local_json_path)
     append_project(server_json_path)
@@ -82,20 +88,6 @@ def assing_project(self, context):
         current_project_hodler.local_path = projects_col[current_project_key]['local_path']
         current_project_hodler.server_path = projects_col[current_project_key]['server_path']
 
-        try:
-            startup_script = bpy.data.texts['INCH_pipiline_startup_settings.py']
-        except KeyError:
-            startup_script = bpy.data.texts.new(
-                'INCH_pipiline_startup_settings.py')
-
-        else:
-            startup_script = bpy.data.texts['INCH_pipiline_startup_settings.py']
-
-        startup_script.use_module = True
-        startup_script.clear()
-        startup_script.write('import bpy \n \nbpy.context.scene.inch_project_enum = "{}"'.format(current_project_key))
-
-
         initialize_catalog()
 
     except KeyError:
@@ -123,10 +115,10 @@ def read_global_projects():
             with open(path, 'r') as projects_db:
                 return json.load(projects_db)
         except FileNotFoundError:
-            show_message_box('Кто - то удалил файл с проектами\n{}'.format(path))
+            show_message_box(path, 'Кто - то удалил файл с проектами')
             return {}
         except json.decoder.JSONDecodeError:
-            show_message_box('Кто - то покалякал в файле проектов\n{}'.format(path))
+            show_message_box(path, 'Кто - то покалякал в файле проектов')
             return {}
     
     local_projects_dict = load_json(project_system_paths.LOCAL_JSON_PATH)
@@ -252,7 +244,7 @@ def write_local_root(key, path):
             json.dump(paths_dict, local_path_setting, indent=2)
 
 
-def read_local_paths(key):
+def read_paths_settings(key):
     project_system_paths.LOCAL_PATH_SETTINGS
 
     if os.path.exists(project_system_paths.LOCAL_PATH_SETTINGS):
@@ -327,8 +319,8 @@ def initialize_catalog():
                         item.local_path = os.path.join(local_path, entry.name)
                         item.server_path = os.path.join(server_path, entry.name)
         except FileNotFoundError:
-            show_message_box(message="Someone deleted project folder",
-                            title="Макс, не тупи!", icon='ERROR')
+            show_message_box(local_path,
+                            'initialize_catalog: Папка не найдена', icon='ERROR')
         
         #потом заменим на rebuild
         clear_subcatalog(1, 2)
@@ -448,22 +440,34 @@ def run_vpn():
 
 
 def ping_server():
-    hostname = "192.168.18.254"
-    response = os.system("ping -n 1 " + hostname)
+    # hostname = "192.168.18.254"
+    # response = os.system("ping -n 1 " + hostname)
 
-    if response == 0:
-        return True
-    else:
-        return False
+    # if response == 0:
+    #     return True
+    # else:
+    #     return False
+    return True
 
 
-def set_render_path():
+def set_render_path(path):
 
     root_path = bpy.context.scene.inch_current_project.local_path
     rel_render_path = 'Work\\3D\\Render'
-    filename = bpy.data.filepath
-    filename = os.path.basename(filename)
+    filename = os.path.basename(path)
     filename = filename.replace('.blend', '')
     bpy.context.scene.render.filepath = os.path.join(root_path, rel_render_path, filename, filename + '_')
 
+def check_startup_conditions():
+    local_root = read_paths_settings('local_root')
 
+    current_project = bpy.context.scene.inch_current_project
+    current_folder = bpy.context.scene.inch_current_folder
+    folder_local_path = current_folder.local_path
+
+    if not folder_local_path == 'Zalupa':
+        if not str(folder_local_path).startswith(local_root):
+            index = folder_local_path.find(os.path.basename(current_project.local_path))
+            wrong_root = folder_local_path[:index]
+            actual_local_path = folder_local_path.replace(wrong_root, local_root)
+            current_folder.local_path = actual_local_path

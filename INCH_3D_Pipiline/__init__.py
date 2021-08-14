@@ -34,13 +34,19 @@ from . import project_operations as jopa
 
 @persistent
 def load_handler(dummy):
-    if not jopa.ping_server(): jopa.show_message_box('А ты точно включил VPN?', 'Сервер не отвечает!')
-    jopa.initialize_catalog()
     jopa.reload_projects_db()
+    try:
+        bpy.context.scene.inch_project_enum = bpy.context.scene.inch_current_project.name
+    except TypeError:
+        pass
+    jopa.check_startup_conditions()
+    jopa.initialize_catalog()
+    
     if not bpy.context.scene.inch_current_folder.name == 'Zalupa': 
         jopa.refresh_files_list()
-    if not os.path.exists(jopa.read_local_paths('local_root')): 
+    if not os.path.exists(jopa.read_paths_settings('local_root')): 
         jopa.show_message_box('Залезь в настройки и укажи путь к папке с проектами', 'Макс, не тупи!')
+    if not jopa.ping_server(): jopa.show_message_box('А ты точно включил VPN?', 'Сервер не отвечает!')
 
 def register():
     properties.register()

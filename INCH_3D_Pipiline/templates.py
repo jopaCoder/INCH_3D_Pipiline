@@ -16,9 +16,9 @@ VIDEO = (   'Materials',
             'Work\\3D\\Project\\Other_Apps\\',
             'Work\\3D\\Project\\References\\',
             'Work\\3D\\Project\\Scripts\\',
-            'Work\\3D\\Project\\Preprodaction\\',
-            'Work\\3D\\Project\\Preprodaction\\Storyboard\\',
-            'Work\\3D\\Project\\Preprodaction\\Cinematic\\',
+            'Work\\3D\\Project\\Preproduction\\',
+            'Work\\3D\\Project\\Preproduction\\Storyboard\\',
+            'Work\\3D\\Project\\Preproduction\\Cinematic\\',
             'Work\\3D\\Project\\Cache\\'
 )
 

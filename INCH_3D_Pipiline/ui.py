@@ -101,7 +101,7 @@ class INCH_PIPILINE_PT_MainUI(Panel):
         third_row = main_col.row()
         box = third_row.box()
         box.label(text='{}:'.format(
-            bpy.context.scene.inch_current_folder.name))
+            bpy.context.scene.inch_current_folder.local_path))
         box_row = box.row()
         box_row.template_list('INCH_PIPILINE_UL_files_list', '', scene,
                               'inch_files_list', scene, 'inch_list_index', rows=10)
@@ -151,8 +151,8 @@ class SettingsMenu(bpy.types.Menu):
 
         layout.operator("wm.inch_create_project_dialog", text='New Project')
         layout.operator("wm.import_project", text='Import Project')
+        layout.operator("inch.dummy", text='Manage projects')
         layout.operator("wm.setup_local_path_dialog", text='Local Path')
-        layout.operator("inch.dummy", text='Archive')
 
 
 def register():

@@ -117,7 +117,7 @@ class INCH_PIPILINE_OT_open_file(Operator):
             bpy.ops.wm.link(self.file_path, 'INVOKE_DEFAULT')
             return {'FINISHED'}
         if event.ctrl and self.file_type == 'Image':
-            soft = jopa.read_local_paths('g_editor')
+            soft = jopa.read_paths_settings('g_editor')
             subprocess.Popen([soft, self.file_path])
             return {'FINISHED'}
         elif event.alt and self.file_type == 'Fbx':
@@ -282,6 +282,53 @@ class INCH_PIPILINE_OT_refresh_files_list(Operator):
 
 # region project
 
+class INCH_PIPILINE_OT_import_project(Operator):
+    """Import project from global db"""
+
+    bl_idname = 'wm.import_project'
+    bl_label = 'Import Project'
+
+    glob_projects: CollectionProperty(type=ProjectListItem)
+    index: IntProperty(default=0)
+
+    def execute(self, context):
+        project = self.glob_projects[self.index]
+        jopa.write_new_project(project.name, project.type,
+                               project.local_path, project.server_path)
+        jopa.create_catalogs(
+            project.type, project.local_path, project.server_path)
+        jopa.reload_projects_db()
+
+        context.scene.inch_project_enum = project.name
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        if jopa.ping_server():       
+            self.glob_projects.clear()
+            for key, project_dict in jopa.read_global_projects():
+                project_list_item = self.glob_projects.add()
+                project_list_item.name = key
+                project_list_item.type = project_dict[key]['type']
+                project_list_item.local_path = project_dict[key]['local_path']
+                
+                local_root = jopa.read_paths_settings('local_root')
+                if not (project_list_item.local_path).startswith(local_root):
+                    project_folder = os.path.basename(project_list_item.local_path)
+                    project_list_item.local_path = os.path.join(local_root, project_folder)
+
+                project_list_item.server_path = project_dict[key]['server_path']
+
+            return context.window_manager.invoke_props_dialog(self)
+        else:
+            jopa.show_message_box('VPN?', 'Сервер не отвечает')
+            return {"FINISHED"}
+    def draw(self, context):
+        layout = self.layout
+
+        layout.template_list('INCH_PIPILINE_UL_global_project_browser', '', self,
+                             'glob_projects', self, 'index', rows=10)
+
 
 class INCH_PIPILINE_OT_refresh_projects_list(Operator):
     """Nothing interesting"""
@@ -330,6 +377,8 @@ class INCH_PIPILINE_OT_creating_project_dialog(Operator):
         jopa.reload_projects_db()
         jopa.create_catalogs(
             project_type, local_path, server_path)
+
+        context.scene.inch_project_enum = project_name
 
         return {'FINISHED'}
 
@@ -486,11 +535,12 @@ class INCH_PIPILINE_OT_save_main_file_dialog(Operator):
         head_path = os.path.join(current_root, relative_file_folder)
         full_path = os.path.join(head_path, main_file_name+'_01.blend')
 
+        jopa.set_render_path(full_path)
+
         bpy.ops.wm.save_as_mainfile(filepath=full_path)
 
         jopa.refresh_files_list()
 
-        jopa.set_render_path()
 
         return {'FINISHED'}
 
@@ -557,6 +607,9 @@ class INCH_PIPILINE_OT_iter_main_file(Operator):
 
         head_path = os.path.join(current_root, relative_folder)
         destination_old_mainfile = os.path.join(head_path, old_mainfile_name)
+        
+        jopa.set_render_path(itered_mainfile_name)
+
         try:
             bpy.ops.wm.save_as_mainfile(filepath=itered_mainfile_name)
         except TypeError:
@@ -565,7 +618,6 @@ class INCH_PIPILINE_OT_iter_main_file(Operator):
         shutil.move(old_mainfile_path, destination_old_mainfile)
 
         jopa.refresh_files_list()
-        jopa.set_render_path()
 
         return {'FINISHED'}
 
@@ -576,11 +628,9 @@ class INCH_PIPILINE_OT_define_local_path_dialog(Operator):
     bl_idname = 'wm.setup_local_path_dialog'
     bl_label = 'Setup Path'
 
-    local_root: StringProperty(name='Local root',
-                               default=jopa.read_local_paths('local_root')
+    local_root: StringProperty(name='Local root'
                                )
-    g_editor: StringProperty(name='Graphical editor',
-                             default=jopa.read_local_paths('g_editor')
+    g_editor: StringProperty(name='Graphical editor'
                              )
 
     def execute(self, context):
@@ -591,51 +641,9 @@ class INCH_PIPILINE_OT_define_local_path_dialog(Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-
+        self.local_root = jopa.read_paths_settings('local_root')
+        self.g_editor = jopa.read_paths_settings('g_editor')
         return context.window_manager.invoke_props_dialog(self)
-
-
-class INCH_PIPILINE_OT_import_project(Operator):
-    """Import project from global db"""
-
-    bl_idname = 'wm.import_project'
-    bl_label = 'Import Project'
-
-    glob_projects: CollectionProperty(type=ProjectListItem)
-    index: IntProperty(default=0)
-
-    def execute(self, context):
-        project = self.glob_projects[self.index]
-        jopa.write_new_project(project.name, project.type,
-                               project.local_path, project.server_path)
-        jopa.create_catalogs(
-            project.type, project.local_path, project.server_path)
-        jopa.reload_projects_db()
-
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        self.glob_projects.clear()
-        for key, project_dict in jopa.read_global_projects():
-            project_list_item = self.glob_projects.add()
-            project_list_item.name = key
-            project_list_item.type = project_dict[key]['type']
-            project_list_item.local_path = project_dict[key]['local_path']
-            
-            local_root = jopa.read_local_paths('local_root')
-            if not (project_list_item.local_path).startswith(local_root):
-                project_folder = os.path.basename(project_list_item.local_path)
-                project_list_item.local_path = os.path.join(local_root, project_folder)
-
-            project_list_item.server_path = project_dict[key]['server_path']
-
-        return context.window_manager.invoke_props_dialog(self)
-
-    def draw(self, context):
-        layout = self.layout
-
-        layout.template_list('INCH_PIPILINE_UL_global_project_browser', '', self,
-                             'glob_projects', self, 'index', rows=10)
 
 
 class INCH_PIPILINE_OT_copy_render_job(Operator):
