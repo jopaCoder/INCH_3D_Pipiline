@@ -1,6 +1,7 @@
 import json
 import os
 import glob
+import shutil
 import subprocess
 import shlex
 
@@ -459,6 +460,7 @@ def set_render_path(path):
     filename = filename.replace('.blend', '')
     bpy.context.scene.render.filepath = os.path.join(root_path, rel_render_path, filename, filename + '_')
 
+
 def check_startup_conditions():
     local_root = read_paths_settings('local_root')
 
@@ -472,6 +474,7 @@ def check_startup_conditions():
             wrong_root = folder_local_path[:index]
             actual_local_path = folder_local_path.replace(wrong_root, local_root)
             current_folder.local_path = actual_local_path
+
 
 def check_update():
     update_folder = project_system_paths.UPDATE_FOLDER
@@ -491,3 +494,31 @@ def check_update():
                 return "Вышло новое обновление!"
     return '8==э'
 
+def copy_file(file_from, file_to):
+
+    def copy():
+        try:
+            shutil.copy2(file_from, file_to)
+        except FileNotFoundError:
+            show_message_box(file_to, 'Файл не существует или к нему нет доступа')
+
+    src_path, s_filename = os.path.split(file_from)
+    dst_path, d_filename = os.path.split(file_to)
+    
+    if not os.path.exists(dst_path):
+        shutil.copytree(src_path, dst_path)
+
+    if os.path.isfile(file_to):
+        src_mtime = os.stat(file_from).st_mtime
+        dst_mtime = os.stat(file_to).st_mtime
+        copy()
+
+        if src_mtime < dst_mtime:          
+            show_message_box('На более старый, дебил...', 'Файл заменен')
+        elif src_mtime > dst_mtime:
+            show_message_box('На более новый', 'Файл заменен')
+        else:
+            show_message_box('Ты ничего не потерял, но и не приобрел', 'Файл заменен')
+    else:
+        copy()
+    

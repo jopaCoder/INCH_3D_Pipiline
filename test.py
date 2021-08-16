@@ -1,7 +1,10 @@
+import os
 
+file1 = 'D:\\xata.blend'
+file2 = "D:\Stomatidin.mp4"
 
-path = 'C:\\Projects\\Testing_Project\\Work\\3D\\Project\\Blend_Files'
+date1 = os.stat(file1).st_mtime
+date2 = os.stat(file2).st_mtime
 
-index = path.find('Testing_Project')
-
-print(path.split()[:-1])
+if date1 > date2:
+    print("xata in newr")

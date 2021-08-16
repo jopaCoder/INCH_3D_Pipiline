@@ -188,14 +188,12 @@ class INCH_PIPILINE_OT_copy_file(Operator):
 
         file_from = bpy.context.scene.inch_files_list[index].local_path
         file_to = bpy.context.scene.inch_files_list[index].server_path
+ 
+        if self.to_server:
+            jopa.copy_file(file_from, file_to)
+        else:
+            jopa.copy_file(file_to, file_from)
 
-        try:
-            if self.to_server:
-                shutil.copy2(file_from, file_to)
-            else:
-                shutil.copy2(file_to, file_from)
-        except FileNotFoundError:
-            jopa.show_message_box(file_to, 'Файл не существует или к нему нет доступа')
         jopa.refresh_files_list()
 
         return {'FINISHED'}
@@ -353,7 +351,7 @@ class INCH_PIPILINE_OT_creating_project_dialog(Operator):
 
     server_path: StringProperty(
         name='Server Path',
-        default=''
+        default='Write path first!'
     )
 
     project_type: EnumProperty(
@@ -413,21 +411,15 @@ class INCH_PIPILINE_OT_sync(Operator):
             if check.checkbox:
                 local_path = check.local_path
                 server_path = check.server_path
-                files_list = jopa.compare_lists(check.local_path, server_path)
+                files_list = jopa.compare_lists(local_path, server_path)
 
                 for file in files_list:
                     if files_list[file]['state'] == 'local':
-                        if not os.path.exists(server_path):
-                            shutil.copytree(local_path, server_path)
-                        #shutil.copy2(files_list[file]['local_path'], files_list[file]['server_path'])
-                        os.popen('copy "{}" "{}"'.format(files_list[file]['local_path'],
-                                                         files_list[file]['server_path']))
+                        jopa.copy_file(files_list[file]['local_path'],
+                                        files_list[file]['server_path'])
                     elif files_list[file]['state'] == 'server':
-                        if not os.path.exists(local_path):
-                            shutil.copytree(server_path, local_path)
-                        #shutil.copy2(files_list[file]['server_path'], files_list[file]['local_path'])
-                        os.popen('copy "{}" "{}"'.format(files_list[file]['server_path'],
-                                                         files_list[file]['local_path']))
+                        jopa.copy_file(files_list[file]['server_path'],
+                                        files_list[file]['local_path'])
                     elif files_list[file]['state'] == 'synced':
                         print('{} need to compare'.format(file))
 
@@ -733,6 +725,21 @@ class INCH_PIPILINE_OT_update(Operator):
         return {'FINISHED'}
 
 
+class INCH_PIPILINE_OT_approve_dialog(Operator):
+    """Update"""
+
+    bl_idname = 'wm.approve'
+    bl_label = 'Approve dialog'
+
+    file: StringProperty(default='jopa')
+
+    def execute(self, context):
+        self.report({'INFO'}, "YES!")
+        return {'FINISHED'}
+
+    def invoke(self, context, event):       
+        return context.window_manager.invoke_confirm(self, event)
+
 classes = (INCH_PIPILINE_OT_dummy,
            INCH_PIPILINE_OT_iter_main_file,
            INCH_PIPILINE_OT_save_main_file_dialog,
@@ -751,7 +758,8 @@ classes = (INCH_PIPILINE_OT_dummy,
            INCH_PIPILINE_OT_sync,
            INCH_PIPILINE_OT_import_project,
            INCH_PIPILINE_OT_copy_render_job,
-           INCH_PIPILINE_OT_update)
+           INCH_PIPILINE_OT_update,
+           INCH_PIPILINE_OT_approve_dialog)
 
 
 def register():
