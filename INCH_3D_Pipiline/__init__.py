@@ -50,7 +50,7 @@ def load_handler(dummy):
     if not bpy.context.scene.inch_current_folder.name == 'Zalupa': 
         jopa.refresh_files_list()
     if not os.path.exists(jopa.read_paths_settings('local_root')): 
-        jopa.show_message_box('Залезь в настройки и укажи путь к папке с проектами', 'Макс, не тупи!')
+        jopa.show_message_box('Перед началом работы', 'Папка с проектами не указана')
     if not jopa.ping_server(): jopa.show_message_box('А ты точно включил VPN?', 'Сервер не отвечает!')
 
 def register():

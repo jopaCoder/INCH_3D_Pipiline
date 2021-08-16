@@ -115,8 +115,8 @@ class INCH_PIPILINE_OT_open_file(Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        if event.shift and self.file_type == 'Blender':
-            bpy.ops.wm.link(self.file_path, 'INVOKE_DEFAULT')
+        if event.shift and self.file_type == 'Image':
+            bpy.ops.object.load_reference_image(filepath=self.file_path)
             return {'FINISHED'}
         if event.ctrl and self.file_type == 'Image':
             soft = jopa.read_paths_settings('g_editor')
@@ -609,25 +609,32 @@ class INCH_PIPILINE_OT_iter_main_file(Operator):
 
         bpy.ops.wm.save_mainfile()
 
-        current_root = bpy.context.scene.inch_current_project.local_path
+        local_root = bpy.context.scene.inch_current_project.local_path
+        server_root = bpy.context.scene.inch_current_project.server_path
         relative_folder = 'Work\\3D\\Project\\Blend_Files\\Versions'
 
-        old_mainfile_path = bpy.data.filepath
-        old_mainfile_name = os.path.basename(old_mainfile_path)
+        old_local_mainfile_path = bpy.data.filepath
+        old_mainfile_name = os.path.basename(old_local_mainfile_path)
+        old_server_mainfile_path = os.path.join(server_root, relative_folder[:-9], old_mainfile_name)
 
-        itered_mainfile_name = iterate_name(old_mainfile_path)
+        itered_mainfile_name = iterate_name(old_local_mainfile_path)
 
-        head_path = os.path.join(current_root, relative_folder)
-        destination_old_mainfile = os.path.join(head_path, old_mainfile_name)
+        dst_old_local_mainfile = os.path.join(local_root, relative_folder, old_mainfile_name)
+        dst_old_server_mainfile = os.path.join(server_root, relative_folder, old_mainfile_name)
         
-        jopa.set_render_path(itered_mainfile_name)
-
+        
         try:
+            jopa.set_render_path(itered_mainfile_name)
             bpy.ops.wm.save_as_mainfile(filepath=itered_mainfile_name)
+
+            shutil.move(old_local_mainfile_path, dst_old_local_mainfile)
+            try:
+                shutil.move(old_server_mainfile_path, dst_old_server_mainfile)
+            except FileNotFoundError:
+                print('Nothing to move on server')
         except TypeError:
             jopa.show_message_box('Save the file first!')
             return {'FINISHED'}
-        shutil.move(old_mainfile_path, destination_old_mainfile)
 
         jopa.refresh_files_list()
 
@@ -725,6 +732,7 @@ class INCH_PIPILINE_OT_update(Operator):
 
         return {'FINISHED'}
 
+
 classes = (INCH_PIPILINE_OT_dummy,
            INCH_PIPILINE_OT_iter_main_file,
            INCH_PIPILINE_OT_save_main_file_dialog,
@@ -745,9 +753,11 @@ classes = (INCH_PIPILINE_OT_dummy,
            INCH_PIPILINE_OT_copy_render_job,
            INCH_PIPILINE_OT_update)
 
+
 def register():
     for cl in classes:
         bpy.utils.register_class(cl)
+
 
 def unregister():
     for cl in classes:
