@@ -395,8 +395,6 @@ class INCH_PIPILINE_OT_creating_project_dialog(Operator):
         if path.endswith('\\') or path.endswith('/'): path = path[:-1]
         self.project_name = os.path.basename(path)
         
-
-
         return self.execute(context)
 # endregion
 
@@ -723,7 +721,7 @@ class INCH_PIPILINE_OT_update(Operator):
                 trgt_file = os.path.join(abs_path, entry.name)
                 shutil.copy2(src_file, trgt_file)
 
-        jopa.show_message_box('Все файлы обновления скопированы', 'Обновление прошло успешно, а хотя - хуй знает')
+        jopa.show_message_box('Все файлы обновления скопированы', 'Обновление прошло успешно, а хотя - хуй его знает')
 
         return {'FINISHED'}
 

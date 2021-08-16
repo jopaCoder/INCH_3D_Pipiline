@@ -26,20 +26,21 @@ def write_new_project(project_name, project_type, local_path, server_path):
     server_json_path = project_system_paths.SERVER_JSON_PATH
 
     def load_db(json_path):
+        project_dict = {}
         try:
             with open(json_path, 'r') as projects_db:
                 projects_dict = json.load(projects_db)
             return projects_dict
         except FileNotFoundError:
-            return {}
+            return project_dict
         except json.decoder.JSONDecodeError:
-            return {}
+            return project_dict
     
     def check_project_duplicates(db, key):
-        for _key in db:
-            if _key == key:
-                return True
-        return False
+            for _key in db:
+                if _key == key:
+                    return True
+            return False          
 
     def append_project(json_path):
         projects_dict = load_db(json_path)
@@ -57,22 +58,23 @@ def write_new_project(project_name, project_type, local_path, server_path):
 
 def reload_projects_db():
 
-    if os.path.exists(project_system_paths.LOCAL_JSON_PATH):
-        try:
-            with open(project_system_paths.LOCAL_JSON_PATH, 'r') as projects_db:
-                local_projects_dict = json.load(projects_db)
+    try:
+        with open(project_system_paths.LOCAL_JSON_PATH, 'r') as projects_db:
+            local_projects_dict = json.load(projects_db)
 
-            projects_collection = bpy.context.scene.inch_projects_collection
-            projects_collection.clear()
+        projects_collection = bpy.context.scene.inch_projects_collection
+        projects_collection.clear()
 
-            for project_key in local_projects_dict.keys():
-                collection_item = projects_collection.add()
-                collection_item.name = project_key
-                collection_item.type = local_projects_dict[project_key]['type']
-                collection_item.local_path = local_projects_dict[project_key]['local_path']
-                collection_item.server_path = local_projects_dict[project_key]['server_path']
-        except json.decoder.JSONDecodeError:
-            pass
+        for project_key in local_projects_dict.keys():
+            collection_item = projects_collection.add()
+            collection_item.name = project_key
+            collection_item.type = local_projects_dict[project_key]['type']
+            collection_item.local_path = local_projects_dict[project_key]['local_path']
+            collection_item.server_path = local_projects_dict[project_key]['server_path']
+    except json.decoder.JSONDecodeError:
+        print('Project_db is not readable')
+    except FileNotFoundError:
+        print('Project_db deleted or not created yet!')
 
 
 def assing_project(self, context):

@@ -26,6 +26,7 @@ import bpy
 import os
 
 from bpy.app.handlers import persistent
+from bpy.types import CurveProfilePoint
 
 from . import properties
 from . import operators
@@ -35,10 +36,14 @@ from . import project_operations as jopa
 @persistent
 def load_handler(dummy):
     jopa.reload_projects_db()
-    try:
-        bpy.context.scene.inch_project_enum = bpy.context.scene.inch_current_project.name
-    except TypeError:
-        pass
+
+    current_project = bpy.context.scene.inch_current_project
+    if current_project != 'Zalupa':
+        try:
+            bpy.context.scene.inch_project_enum = current_project.name
+        except TypeError:
+            print('No current project')
+
     jopa.check_startup_conditions()
     jopa.initialize_catalog()
     
