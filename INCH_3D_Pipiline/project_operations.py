@@ -1,5 +1,4 @@
 import json
-from json.decoder import JSONDecodeError
 import os
 import glob
 import subprocess
@@ -115,10 +114,10 @@ def read_global_projects():
             with open(path, 'r') as projects_db:
                 return json.load(projects_db)
         except FileNotFoundError:
-            show_message_box(path, 'Кто - то удалил файл с проектами')
+            show_message_box(path, 'Нет доступа к базе проектов')
             return {}
         except json.decoder.JSONDecodeError:
-            show_message_box(path, 'Кто - то покалякал в файле проектов')
+            show_message_box(path, 'Нечитаемая база проектов')
             return {}
     
     local_projects_dict = load_json(project_system_paths.LOCAL_JSON_PATH)
@@ -471,3 +470,22 @@ def check_startup_conditions():
             wrong_root = folder_local_path[:index]
             actual_local_path = folder_local_path.replace(wrong_root, local_root)
             current_folder.local_path = actual_local_path
+
+def check_update():
+    update_folder = project_system_paths.UPDATE_FOLDER
+    abs_path = project_system_paths.ABS_PATH
+        
+    with os.scandir(update_folder) as it:
+        for entry in it:
+            src_file = entry.path
+            trgt_file = os.path.join(abs_path, entry.name)
+            src_file_size = os.stat(src_file).st_size
+            try:
+                trgt_file_size = os.stat(trgt_file).st_size
+            except FileNotFoundError:
+                return "Вышло новое обновление!"
+
+            if src_file_size != trgt_file_size:
+                return "Вышло новое обновление!"
+    return '8==э'
+

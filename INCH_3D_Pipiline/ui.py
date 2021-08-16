@@ -1,5 +1,6 @@
+from .project_operations import check_update
 import bpy
-from bpy.types import Panel, UIList, Menu
+from bpy.types import Panel, UIList
 
 
 class INCH_PIPILINE_UL_global_project_browser(UIList):
@@ -129,11 +130,7 @@ class INCH_PIPILINE_PT_MainUI(Panel):
         foutrh_row.operator("wm.call_menu", text='',
                             icon='PREFERENCES').name = "OBJECT_MT_simple_custom_menu"
         
-        job_state = context.scene.inch_inch_copy_job_state
-        alert_row = foutrh_row.row()
-        alert_row.alert = job_state.state
-        alert_row.operator('inch.render_job', text=job_state.command, emboss=False)
- 
+        foutrh_row.label(text=check_update())
         foutrh_row.separator(factor=100.0)
         foutrh_row.operator("wm.inch_save_main_file", text='', icon='BLENDER')
         foutrh_row.operator("inch.iter_main_file", text='', icon='ADD')
@@ -149,11 +146,23 @@ class SettingsMenu(bpy.types.Menu):
         layout = self.layout
         layout.operator_context = "INVOKE_DEFAULT"
 
+        layout.operator_menu_enum
+
         layout.operator("wm.inch_create_project_dialog", text='New Project')
         layout.operator("wm.import_project", text='Import Project')
         layout.operator("inch.dummy", text='Manage projects')
+       
+        layout.label(text='-----------------------------')
+        
         layout.operator("wm.setup_local_path_dialog", text='Local Path')
+        layout.operator("inch.update", text='Update')
 
+        layout.label(text='-----------------------------')
+
+        job_state = context.scene.inch_inch_copy_job_state
+        alert_row = layout.row()
+        alert_row.alert = job_state.state
+        alert_row.operator('inch.render_job', text=job_state.command, emboss=False, icon='ARMATURE_DATA')
 
 def register():
     bpy.utils.register_class(INCH_PIPILINE_UL_catalog_browser)

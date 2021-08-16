@@ -1,3 +1,4 @@
+
 import os
 import bpy
 import shutil
@@ -9,6 +10,7 @@ from bpy.props import BoolProperty, CollectionProperty, IntProperty, StringPrope
 
 from .properties import SyncCheckBox, ProjectListItem
 from . import project_operations as jopa
+from . import project_system_paths
 
 
 class INCH_PIPILINE_OT_dummy(Operator):
@@ -384,6 +386,18 @@ class INCH_PIPILINE_OT_creating_project_dialog(Operator):
 
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, 'project_name')
+        layout.prop(self, 'server_path')
+        path = self.server_path
+        if path.endswith('\\') or path.endswith('/'): path = path[:-1]
+        self.project_name = os.path.basename(path)
+        
+
+
+        return self.execute(context)
 # endregion
 
 
@@ -692,42 +706,51 @@ class INCH_PIPILINE_OT_copy_render_job(Operator):
         return {'FINISHED'}
 
 
+class INCH_PIPILINE_OT_update(Operator):
+    """Update"""
+
+    bl_idname = 'inch.update'
+    bl_label = 'Update'
+
+    def execute(self, context):
+
+        update_folder = project_system_paths.UPDATE_FOLDER
+        abs_path = project_system_paths.ABS_PATH
+        
+        with os.scandir(update_folder) as it:
+            for entry in it:
+                src_file = entry.path
+                trgt_file = os.path.join(abs_path, entry.name)
+                shutil.copy2(src_file, trgt_file)
+
+        jopa.show_message_box('Все файлы обновления скопированы', 'Обновление прошло успешно, а хотя - хуй знает')
+
+        return {'FINISHED'}
+
+classes = (INCH_PIPILINE_OT_dummy,
+           INCH_PIPILINE_OT_iter_main_file,
+           INCH_PIPILINE_OT_save_main_file_dialog,
+           INCH_PIPILINE_OT_generate_files_list,
+           INCH_PIPILINE_OT_generate_sub_catalog,
+           INCH_PIPILINE_OT_copy_file_path,
+           INCH_PIPILINE_OT_refresh_files_list,
+           INCH_PIPILINE_OT_creating_project_dialog,
+           INCH_PIPILINE_OT_define_local_path_dialog,
+           INCH_PIPILINE_OT_refresh_projects_list,
+           INCH_PIPILINE_OT_open_folder,
+           INCH_PIPILINE_OT_copy_folder_path,
+           INCH_PIPILINE_OT_delete_file,
+           INCH_PIPILINE_OT_copy_file,
+           INCH_PIPILINE_OT_open_file,
+           INCH_PIPILINE_OT_sync,
+           INCH_PIPILINE_OT_import_project,
+           INCH_PIPILINE_OT_copy_render_job,
+           INCH_PIPILINE_OT_update)
+
 def register():
-    bpy.utils.register_class(INCH_PIPILINE_OT_dummy)
-    bpy.utils.register_class(INCH_PIPILINE_OT_iter_main_file)
-    bpy.utils.register_class(INCH_PIPILINE_OT_save_main_file_dialog)
-    bpy.utils.register_class(INCH_PIPILINE_OT_generate_files_list)
-    bpy.utils.register_class(INCH_PIPILINE_OT_generate_sub_catalog)
-    bpy.utils.register_class(INCH_PIPILINE_OT_copy_file_path)
-    bpy.utils.register_class(INCH_PIPILINE_OT_refresh_files_list)
-    bpy.utils.register_class(INCH_PIPILINE_OT_creating_project_dialog)
-    bpy.utils.register_class(INCH_PIPILINE_OT_define_local_path_dialog)
-    bpy.utils.register_class(INCH_PIPILINE_OT_refresh_projects_list)
-    bpy.utils.register_class(INCH_PIPILINE_OT_open_folder)
-    bpy.utils.register_class(INCH_PIPILINE_OT_copy_folder_path)
-    bpy.utils.register_class(INCH_PIPILINE_OT_delete_file)
-    bpy.utils.register_class(INCH_PIPILINE_OT_copy_file)
-    bpy.utils.register_class(INCH_PIPILINE_OT_open_file)
-    bpy.utils.register_class(INCH_PIPILINE_OT_sync)
-    bpy.utils.register_class(INCH_PIPILINE_OT_import_project)
-    bpy.utils.register_class(INCH_PIPILINE_OT_copy_render_job)
+    for cl in classes:
+        bpy.utils.register_class(cl)
 
 def unregister():
-    bpy.utils.unregister_class(INCH_PIPILINE_OT_dummy)
-    bpy.utils.unregister_class(INCH_PIPILINE_OT_iter_main_file)
-    bpy.utils.unregister_class(INCH_PIPILINE_OT_save_main_file_dialog)
-    bpy.utils.unregister_class(INCH_PIPILINE_OT_generate_files_list)
-    bpy.utils.unregister_class(INCH_PIPILINE_OT_generate_sub_catalog)
-    bpy.utils.unregister_class(INCH_PIPILINE_OT_copy_file_path)
-    bpy.utils.unregister_class(INCH_PIPILINE_OT_refresh_files_list)
-    bpy.utils.unregister_class(INCH_PIPILINE_OT_creating_project_dialog)
-    bpy.utils.unregister_class(INCH_PIPILINE_OT_define_local_path_dialog)
-    bpy.utils.unregister_class(INCH_PIPILINE_OT_refresh_projects_list)
-    bpy.utils.unregister_class(INCH_PIPILINE_OT_open_folder)
-    bpy.utils.unregister_class(INCH_PIPILINE_OT_copy_folder_path)
-    bpy.utils.unregister_class(INCH_PIPILINE_OT_delete_file)
-    bpy.utils.unregister_class(INCH_PIPILINE_OT_copy_file)
-    bpy.utils.unregister_class(INCH_PIPILINE_OT_open_file)
-    bpy.utils.unregister_class(INCH_PIPILINE_OT_sync)
-    bpy.utils.unregister_class(INCH_PIPILINE_OT_import_project)
-    bpy.utils.unregister_class(INCH_PIPILINE_OT_copy_render_job)
+    for cl in classes:
+        bpy.utils.unregister_class(cl)
