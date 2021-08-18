@@ -1,7 +1,7 @@
 from .project_operations import check_update
 import bpy
 from bpy.types import Panel, UIList
-
+import os
 
 class INCH_PIPILINE_UL_global_project_browser(UIList):
 
@@ -32,15 +32,28 @@ class INCH_PIPILINE_UL_files_list(UIList):
         open_file_ot = row.operator('inch.open_file', text='', icon=icon, emboss=False)
         open_file_ot.file_path=item.local_path
         open_file_ot.file_type=item.file_type
-        row.label(text=item.name)
-        layout.alert = item.alert
-        copy_file_path_ot = layout.operator("inch.copy_file_path", 
+        
+        split = row.split(factor=0.4)
+        split.label(text=item.name)
+        split.alert = item.alert
+
+        row2 = split.row()
+        copy_file_path_ot = row2.operator("inch.copy_file_path", 
                                                 text='', 
                                                 icon=item.state_icon, 
                                                 emboss=False)
         copy_file_path_ot.local_path = item.local_path
         copy_file_path_ot.server_path = item.server_path
-        layout.label(text=item.state)
+        
+        row2.label(text=item.state)
+        
+        if item.state == 'server':
+            item_path = item.server_path
+        else:
+            item_path = item.local_path
+
+        filesize = round(os.stat(item_path).st_size/(1024*1024),2)
+        row2.label(text='{}mb'.format(filesize))
 
 
 class INCH_PIPILINE_PT_MainUI(Panel):
@@ -152,17 +165,19 @@ class SettingsMenu(bpy.types.Menu):
         layout.operator("wm.import_project", text='Import Project')
         layout.operator("inch.dummy", text='Manage projects')
        
-        layout.label(text='-----------------------------')
+        sepparator = '-'*30
+        layout.label(text=sepparator)
         
         layout.operator("wm.setup_local_path_dialog", text='Local Path')
         layout.operator("inch.update", text='Update')
 
-        layout.label(text='-----------------------------')
+        layout.label(text=sepparator)
 
         job_state = context.scene.inch_inch_copy_job_state
         alert_row = layout.row()
         alert_row.alert = job_state.state
         alert_row.operator('inch.render_job', text=job_state.command, emboss=False, icon='ARMATURE_DATA')
+
 
 def register():
     bpy.utils.register_class(INCH_PIPILINE_UL_catalog_browser)
@@ -170,6 +185,7 @@ def register():
     bpy.utils.register_class(INCH_PIPILINE_PT_MainUI)
     bpy.utils.register_class(SettingsMenu)
     bpy.utils.register_class(INCH_PIPILINE_UL_global_project_browser)
+
 
 def unregister():
     bpy.utils.unregister_class(INCH_PIPILINE_UL_catalog_browser)

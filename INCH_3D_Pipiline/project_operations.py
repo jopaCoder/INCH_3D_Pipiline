@@ -152,11 +152,27 @@ def build_list(dict_of_stats):
 
         handle = property_group.add()
         handle.name = item
-        handle.state = dict_of_stats[item]['state']
+
+        local_path = dict_of_stats[item]['local_path']
+        server_path = dict_of_stats[item]['server_path']
+        state = dict_of_stats[item]['state']
+
+        if state == 'synced':
+            local_mtime = os.stat(local_path).st_mtime
+            server_mtime = os.stat(server_path).st_mtime
+            
+            if local_mtime > server_mtime:
+                pisya = '↓'
+            elif local_mtime < server_mtime:
+                pisya = '↑'
+        else:
+            pisya = ''
+
+        handle.state = '{} {}'.format(state, pisya)
         handle.state_icon = dict_of_stats[item]['state_icon']
         handle.alert = dict_of_stats[item]['alert']
-        handle.local_path = dict_of_stats[item]['local_path']
-        handle.server_path = dict_of_stats[item]['server_path']
+        handle.local_path = local_path
+        handle.server_path = server_path
         handle.main_icon = dict_of_stats[item]['main_icon']
         handle.file_type = file_type
 
@@ -493,6 +509,7 @@ def check_update():
             if src_file_size != trgt_file_size:
                 return "Вышло новое обновление!"
     return '8==э'
+
 
 def copy_file(file_from, file_to):
 

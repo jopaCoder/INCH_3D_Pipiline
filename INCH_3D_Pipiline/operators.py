@@ -393,7 +393,6 @@ class INCH_PIPILINE_OT_creating_project_dialog(Operator):
         if path.endswith('\\') or path.endswith('/'): path = path[:-1]
         self.project_name = os.path.basename(path)
         
-        return self.execute(context)
 # endregion
 
 
@@ -561,6 +560,8 @@ class INCH_PIPILINE_OT_save_main_file_dialog(Operator):
         col_r.label(text="Scene_Lavina_Modeling")
         col_r.label(text="Scene_Lavina_Animation")
         col_r.label(text="Prop_Dildo_Modeling")
+
+        if bpy.data.filepath != '': self.main_file_name = os.path.basename(bpy.data.filepath)[:-9]
 
         layout.prop(self, 'main_file_name', text='')
 
@@ -739,6 +740,7 @@ class INCH_PIPILINE_OT_approve_dialog(Operator):
 
     def invoke(self, context, event):       
         return context.window_manager.invoke_confirm(self, event)
+
 
 classes = (INCH_PIPILINE_OT_dummy,
            INCH_PIPILINE_OT_iter_main_file,

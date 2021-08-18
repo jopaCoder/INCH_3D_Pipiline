@@ -1,10 +1,15 @@
-import os
+c = r'jopa\atom\mandarin\pomada'
 
-file1 = 'D:\\xata.blend'
-file2 = "D:\Stomatidin.mp4"
+print(c)
 
-date1 = os.stat(file1).st_mtime
-date2 = os.stat(file2).st_mtime
+c = c.split('\\')
 
-if date1 > date2:
-    print("xata in newr")
+s = ' 8==э '.join(c[:-1])
+print(s)
+
+print('zalupa'.center(100))
+
+for a in 'aaaaaaaaaaaaa':
+    print(a)
+
+
