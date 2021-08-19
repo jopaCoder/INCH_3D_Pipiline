@@ -138,6 +138,22 @@ def read_global_projects():
 
 # region List
 
+def load_custom_icons():
+
+    preview_collections = {}
+
+    import bpy.utils.previews
+    my_icons_dir = os.path.join(os.path.dirname(__file__), "icons")
+    pcoll = bpy.utils.previews.new()
+
+    with os.scandir(my_icons_dir) as it:
+        for entry in it:
+            pcoll.load(entry.name[:-4], entry.path, 'IMAGE')
+            preview_collections["state"] = pcoll
+
+    return preview_collections
+
+
 def build_list(dict_of_stats):
 
     list_object = bpy.context.scene.inch_files_list
@@ -204,9 +220,9 @@ def compare_lists(local_dir, server_dir):
             'only_server_files': 'server',
             'duply_local': 'synced'}
 
-    state_icon = {'only_local_files': 'NODETREE',
-                'only_server_files': 'URL',
-                'duply_local': 'DOT'}
+    state_icon = {'only_local_files': 'icon_local',
+                'only_server_files': 'icon_server',
+                'duply_local': 'icon_synced'}
 
     alert = {'only_local_files': False,
             'only_server_files': True,
@@ -234,11 +250,11 @@ def compare_lists(local_dir, server_dir):
                 server_mtime = os.stat(server_path).st_mtime
                 
                 if local_mtime > server_mtime:
-                    relevance = 'GHOST_DISABLED'
+                    relevance = 'icon_old'
                 elif local_mtime < server_mtime:
-                    relevance = 'GHOST_ENABLED'
+                    relevance = 'icon_new'
                 else:
-                    relevance = 'DOT'
+                    relevance = 'icon_synced'
             else:
                 relevance = state_icon[keys[index]]
 
@@ -509,16 +525,17 @@ def check_update():
         
     with os.scandir(update_folder) as it:
         for entry in it:
-            src_file = entry.path
-            trgt_file = os.path.join(abs_path, entry.name)
-            src_file_size = os.stat(src_file).st_size
-            try:
-                trgt_file_size = os.stat(trgt_file).st_size
-            except FileNotFoundError:
-                return "Вышло новое обновление!"
+            if not entry.is_dir():
+                src_file = entry.path
+                trgt_file = os.path.join(abs_path, entry.name)
+                src_file_size = os.stat(src_file).st_size
+                try:
+                    trgt_file_size = os.stat(trgt_file).st_size
+                except FileNotFoundError:
+                    return "Вышло новое обновление!"
 
-            if src_file_size != trgt_file_size:
-                return "Вышло новое обновление!"
+                if src_file_size != trgt_file_size:
+                    return "Вышло новое обновление!"
     return '8==э'
 
 

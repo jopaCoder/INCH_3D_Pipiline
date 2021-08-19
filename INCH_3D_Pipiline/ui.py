@@ -24,6 +24,7 @@ class INCH_PIPILINE_UL_catalog_browser(UIList):
         folder.name = item.name
         row.label(text=item.name)
 
+pcoll = project_operations.load_custom_icons()['state']
 
 class INCH_PIPILINE_UL_files_list(UIList):
 
@@ -38,9 +39,13 @@ class INCH_PIPILINE_UL_files_list(UIList):
         split.label(text=item.name)
         split.alert = item.alert
         row2 = split.row()
+
+        icon = pcoll[item.state_icon]
+
         copy_file_path_ot = row2.operator("inch.copy_file_path", 
                                                 text='', 
-                                                icon=item.state_icon, 
+                                                #icon=item.state_icon,
+                                                icon_value=icon.icon_id, 
                                                 emboss=False)
         copy_file_path_ot.local_path = item.local_path
         copy_file_path_ot.server_path = item.server_path

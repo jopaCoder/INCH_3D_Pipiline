@@ -715,11 +715,18 @@ class INCH_PIPILINE_OT_update(Operator):
         update_folder = project_system_paths.UPDATE_FOLDER
         abs_path = project_system_paths.ABS_PATH
         
-        with os.scandir(update_folder) as it:
-            for entry in it:
-                src_file = entry.path
-                trgt_file = os.path.join(abs_path, entry.name)
-                shutil.copy2(src_file, trgt_file)
+        def download_updates(path, copypath):
+            with os.scandir(path) as folder:
+                for entry in folder:
+                    if entry.is_dir() and entry.name != '__pycache__':
+                        newpath = os.path.join(copypath, entry.name)
+                        os.makedirs(newpath)
+                        download_updates(entry.path, newpath)
+                    elif  not entry.is_dir() and not entry.name.endswith('.txt'):
+                        trgt_path = os.path.join(copypath, entry.name)
+                        shutil.copy2(entry.path, trgt_path)
+        
+        download_updates(update_folder, abs_path)
 
         jopa.show_message_box('Все файлы обновления скопированы', 'Обновление прошло успешно, а хотя - хуй его знает')
 

@@ -5,8 +5,18 @@ update_folder = '\\\\fileserver.inch\\public\\exchange\\01 Aleksey Vykhristyuk\\
 
 files_folder = 'D:\\projects\\INCH_3D_Pipiline\\INCH_3D_Pipiline'
 
-with os.scandir(files_folder) as folder:
-    for entry in folder:
-        if not entry.is_dir() and not entry.name.endswith('.txt'):
-            trgt_path = os.path.join(update_folder, entry.name)
-            shutil.copy2(entry.path, trgt_path)
+
+def upload(path, copypath):
+    with os.scandir(path) as folder:
+        for entry in folder:
+            if entry.is_dir() and entry.name != '__pycache__':
+                newpath = os.path.join(copypath, entry.name)
+                os.makedirs(newpath)
+                upload(entry.path, newpath)
+            elif  not entry.is_dir() and not entry.name.endswith('.txt'):
+                trgt_path = os.path.join(copypath, entry.name)
+                shutil.copy2(entry.path, trgt_path)
+
+
+
+upload(files_folder, update_folder)
