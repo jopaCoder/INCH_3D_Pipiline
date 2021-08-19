@@ -156,6 +156,7 @@ def build_list(dict_of_stats):
         local_path = dict_of_stats[item]['local_path']
         server_path = dict_of_stats[item]['server_path']
         state = dict_of_stats[item]['state']
+        pisya = ''
 
         if state == 'synced':
             local_mtime = os.stat(local_path).st_mtime
@@ -165,8 +166,6 @@ def build_list(dict_of_stats):
                 pisya = '↓'
             elif local_mtime < server_mtime:
                 pisya = '↑'
-        else:
-            pisya = ''
 
         handle.state = '{} {}'.format(state, pisya)
         handle.state_icon = dict_of_stats[item]['state_icon']

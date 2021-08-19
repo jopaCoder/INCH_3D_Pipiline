@@ -52,7 +52,7 @@ class INCH_PIPILINE_OT_copy_folder_path(Operator):
 
 
 class INCH_PIPILINE_OT_open_folder(Operator):
-    """Open local folder. Press CTRL to open server folder"""
+    """Open local folder. Press SHIFT to open server folder"""
 
     bl_label = "Open folder"
     bl_idname = "inch.open_folder"
@@ -63,7 +63,7 @@ class INCH_PIPILINE_OT_open_folder(Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        if event.ctrl:
+        if event.shift:
             path = bpy.context.scene.inch_current_folder.server_path
             try:
                 os.startfile(path)
