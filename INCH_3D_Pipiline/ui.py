@@ -1,7 +1,8 @@
 from .project_operations import check_update
 import bpy
 from bpy.types import Panel, UIList
-import os
+
+from INCH_3D_Pipiline import project_operations
 
 class INCH_PIPILINE_UL_global_project_browser(UIList):
 
@@ -36,7 +37,6 @@ class INCH_PIPILINE_UL_files_list(UIList):
         split = row.split(factor=0.4)
         split.label(text=item.name)
         split.alert = item.alert
-
         row2 = split.row()
         copy_file_path_ot = row2.operator("inch.copy_file_path", 
                                                 text='', 
@@ -46,7 +46,6 @@ class INCH_PIPILINE_UL_files_list(UIList):
         copy_file_path_ot.server_path = item.server_path
         
         row2.label(text=item.state)
-        row2.label(text=item.relevance)
         row2.label(text=item.file_size)
 
 class INCH_PIPILINE_PT_MainUI(Panel):

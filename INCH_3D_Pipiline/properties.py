@@ -1,5 +1,4 @@
-from os import path
-import types
+import os
 import bpy
 
 from . import project_operations
@@ -100,11 +99,6 @@ class FileListItem(PropertyGroup):
     file_size: StringProperty(
             name='File size',
             default='0'
-        )
-   
-    relevance: StringProperty(
-            name='Relevance',
-            default='Relevance'
         )
 
 

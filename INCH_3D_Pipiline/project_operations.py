@@ -138,7 +138,6 @@ def read_global_projects():
 
 # region List
 
-
 def build_list(dict_of_stats):
 
     list_object = bpy.context.scene.inch_files_list
@@ -157,7 +156,6 @@ def build_list(dict_of_stats):
         handle.server_path = dict_of_stats[key]['server_path']
         handle.main_icon = dict_of_stats[key]['main_icon']
         handle.file_size = dict_of_stats[key]['file_size']
-        handle.relevance = dict_of_stats[key]['relevance']
         handle.file_type = file_type
 
 
@@ -236,21 +234,20 @@ def compare_lists(local_dir, server_dir):
                 server_mtime = os.stat(server_path).st_mtime
                 
                 if local_mtime > server_mtime:
-                    relevance = '↓'
+                    relevance = 'GHOST_DISABLED'
                 elif local_mtime < server_mtime:
-                    relevance = '↑'
+                    relevance = 'GHOST_ENABLED'
                 else:
-                    relevance = '✓'
+                    relevance = 'DOT'
             else:
-                relevance = ''
+                relevance = state_icon[keys[index]]
 
             file_stats[item] = {'state': file_state,
-                                'state_icon': state_icon[keys[index]],
+                                'state_icon': relevance,
                                 'alert': alert[keys[index]],
                                 'main_icon': main_icon,
                                 'local_path': local_path,
                                 'server_path': server_path,
-                                'relevance': relevance, 
                                 'file_size': filesize
                                 }
     return file_stats
