@@ -97,6 +97,16 @@ class FileListItem(PropertyGroup):
         default=False
         )
 
+    file_size: StringProperty(
+            name='File size',
+            default='0'
+        )
+   
+    relevance: StringProperty(
+            name='Relevance',
+            default='Relevance'
+        )
+
 
 class SyncCheckBox(PropertyGroup):
     name: StringProperty()

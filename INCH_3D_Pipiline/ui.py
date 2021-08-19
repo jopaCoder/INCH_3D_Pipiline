@@ -46,18 +46,8 @@ class INCH_PIPILINE_UL_files_list(UIList):
         copy_file_path_ot.server_path = item.server_path
         
         row2.label(text=item.state)
-        state = item.state
-
-        if 'server' in state:
-            item_path = item.server_path
-        else:
-            item_path = item.local_path
-
-        try:
-            filesize = round(os.stat(item_path).st_size/(1024*1024),2)            
-        except FileNotFoundError:
-            filesize = 'error'
-        row2.label(text='{}mb'.format(filesize))
+        row2.label(text=item.relevance)
+        row2.label(text=item.file_size)
 
 class INCH_PIPILINE_PT_MainUI(Panel):
 

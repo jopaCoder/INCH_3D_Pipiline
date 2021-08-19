@@ -141,38 +141,23 @@ def read_global_projects():
 
 def build_list(dict_of_stats):
 
-    property_group = bpy.context.scene.inch_files_list
-    property_group.clear()
+    list_object = bpy.context.scene.inch_files_list
+    list_object.clear()
 
-    list_of_items = dict_of_stats.keys()
-    list_of_items = sorted(list_of_items)
+    for key in sorted(dict_of_stats.keys()):
+        file_type = check_file_type(key)
 
-    for item in list_of_items:
-        file_type = check_file_type(item)
+        handle = list_object.add()
+        handle.name = key
 
-        handle = property_group.add()
-        handle.name = item
-
-        local_path = dict_of_stats[item]['local_path']
-        server_path = dict_of_stats[item]['server_path']
-        state = dict_of_stats[item]['state']
-        pisya = ''
-
-        if state == 'synced':
-            local_mtime = os.stat(local_path).st_mtime
-            server_mtime = os.stat(server_path).st_mtime
-            
-            if local_mtime > server_mtime:
-                pisya = '↓'
-            elif local_mtime < server_mtime:
-                pisya = '↑'
-
-        handle.state = '{} {}'.format(state, pisya)
-        handle.state_icon = dict_of_stats[item]['state_icon']
-        handle.alert = dict_of_stats[item]['alert']
-        handle.local_path = local_path
-        handle.server_path = server_path
-        handle.main_icon = dict_of_stats[item]['main_icon']
+        handle.state = dict_of_stats[key]['state']
+        handle.state_icon = dict_of_stats[key]['state_icon']
+        handle.alert = dict_of_stats[key]['alert']
+        handle.local_path = dict_of_stats[key]['local_path']
+        handle.server_path = dict_of_stats[key]['server_path']
+        handle.main_icon = dict_of_stats[key]['main_icon']
+        handle.file_size = dict_of_stats[key]['file_size']
+        handle.relevance = dict_of_stats[key]['relevance']
         handle.file_type = file_type
 
 
@@ -231,12 +216,42 @@ def compare_lists(local_dir, server_dir):
 
     for index in range(3):
         for item in list_of_lists[index]:
-            file_stats[item] = {'state': state[keys[index]],
+
+            local_path = os.path.join(local_dir, item)
+            server_path = os.path.join(server_dir, item)
+            file_state = state[keys[index]]
+
+            if file_state == 'server':
+                item_path = server_path
+            else:
+                item_path = local_path
+
+            try:
+                filesize = str('{}mb'.format(round(os.stat(item_path).st_size/(1024*1024),2)))
+            except FileNotFoundError:
+                filesize = 'error'
+
+            if index == 2:
+                local_mtime = os.stat(local_path).st_mtime
+                server_mtime = os.stat(server_path).st_mtime
+                
+                if local_mtime > server_mtime:
+                    relevance = '↓'
+                elif local_mtime < server_mtime:
+                    relevance = '↑'
+                else:
+                    relevance = '✓'
+            else:
+                relevance = ''
+
+            file_stats[item] = {'state': file_state,
                                 'state_icon': state_icon[keys[index]],
                                 'alert': alert[keys[index]],
                                 'main_icon': main_icon,
-                                'local_path': os.path.join(local_dir, item),
-                                'server_path': os.path.join(server_dir, item)
+                                'local_path': local_path,
+                                'server_path': server_path,
+                                'relevance': relevance, 
+                                'file_size': filesize
                                 }
     return file_stats
 
