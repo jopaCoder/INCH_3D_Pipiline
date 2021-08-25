@@ -174,7 +174,7 @@ class SettingsMenu(bpy.types.Menu):
         alert_row = layout.row()
         alert_row.alert = job_state.state
         alert_row.operator('inch.render_job', text=job_state.command, emboss=False, icon='ARMATURE_DATA')
-
+        #layout.operator('inch.party_time', text='@')
 
 def register():
     bpy.utils.register_class(INCH_PIPILINE_UL_catalog_browser)

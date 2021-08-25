@@ -39,4 +39,18 @@ PACKS = (   'Materials',
             'Work\\3D\\Project\\AI\\',
 )
 
-UNITY = ()
+UNITY = (
+            'Materials',
+            'Preview\\',
+            'Preview\\Video\\',
+            'Preview\\Image\\',
+            'Work\\',
+            'Work\\3D\\',
+            'Work\\3D\\Export\\',
+            'Work\\3D\\Project\\',
+            'Work\\3D\\Project\\Maps\\',
+            'Work\\3D\\Project\\Maps\\HDRI\\',
+            'Work\\3D\\Project\\Temp\\',                     
+            'Work\\3D\\Project\\Blend_Files\\',
+            'Work\\3D\\Project\\Blend_Files\\Versions\\',
+)

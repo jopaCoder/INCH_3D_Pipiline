@@ -251,14 +251,18 @@ def compare_lists(local_dir, server_dir):
                 
                 if local_mtime > server_mtime:
                     relevance = 'icon_old'
+                    rel_state = 'чем пахнет?'
                 elif local_mtime < server_mtime:
                     relevance = 'icon_new'
+                    rel_state = 'огурчик!'
                 else:
                     relevance = 'icon_synced'
+                    rel_state = file_state
             else:
                 relevance = state_icon[keys[index]]
+                rel_state = file_state
 
-            file_stats[item] = {'state': file_state,
+            file_stats[item] = {'state': rel_state,
                                 'state_icon': relevance,
                                 'alert': alert[keys[index]],
                                 'main_icon': main_icon,
@@ -433,7 +437,7 @@ def check_folder_type(folder):
     mask = ''
     icon = ''
 
-    if folder == 'Blend_Files':
+    if folder == 'Blend_Files' or folder == 'Versions':
         mask = '*.blend'
         icon = 'BLENDER'
     elif folder == 'Maps' or folder == 'References' or folder == 'Preview' or folder == 'Render':

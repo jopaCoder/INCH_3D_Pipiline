@@ -1,9 +1,9 @@
-
 import os
 import bpy
 import shutil
 import subprocess
 import shlex
+import aud
 
 from bpy.types import Operator
 from bpy.props import BoolProperty, CollectionProperty, IntProperty, StringProperty, EnumProperty
@@ -389,6 +389,7 @@ class INCH_PIPILINE_OT_creating_project_dialog(Operator):
         layout = self.layout
         layout.prop(self, 'project_name')
         layout.prop(self, 'server_path')
+        layout.prop(self, 'project_type')
         path = self.server_path
         if path.endswith('\\') or path.endswith('/'): path = path[:-1]
         self.project_name = os.path.basename(path)
@@ -720,7 +721,10 @@ class INCH_PIPILINE_OT_update(Operator):
                 for entry in folder:
                     if entry.is_dir() and entry.name != '__pycache__':
                         newpath = os.path.join(copypath, entry.name)
-                        os.makedirs(newpath)
+                        try:
+                            os.makedirs(newpath)
+                        except FileExistsError:
+                            print('{} is exists'.format(entry.name))
                         download_updates(entry.path, newpath)
                     elif  not entry.is_dir() and not entry.name.endswith('.txt'):
                         trgt_path = os.path.join(copypath, entry.name)
@@ -749,6 +753,30 @@ class INCH_PIPILINE_OT_approve_dialog(Operator):
         return context.window_manager.invoke_confirm(self, event)
 
 
+class INCH_PIPILINE_OT_party_time(Operator):
+    """Party Time!"""
+
+    bl_idname = 'inch.party_time'
+    bl_label = 'Party time'
+
+    isPlaying: BoolProperty(default=False)
+
+    def execute(self, context):       
+        device = aud.Device()
+        sound_file = os.path.join(project_system_paths.ABS_PATH, 'music.mp3')
+        sound = aud.Sound(sound_file)
+
+        if self.isPlaying:
+            device.stopAll()
+            self.isPlaying = False
+            print('Back to work!')
+        else:
+            device.play(sound)
+            self.isPlaying = True
+            print('Its party time!')
+        return{"FINISHED"}
+        
+
 classes = (INCH_PIPILINE_OT_dummy,
            INCH_PIPILINE_OT_iter_main_file,
            INCH_PIPILINE_OT_save_main_file_dialog,
@@ -768,7 +796,8 @@ classes = (INCH_PIPILINE_OT_dummy,
            INCH_PIPILINE_OT_import_project,
            INCH_PIPILINE_OT_copy_render_job,
            INCH_PIPILINE_OT_update,
-           INCH_PIPILINE_OT_approve_dialog)
+           INCH_PIPILINE_OT_approve_dialog,
+           INCH_PIPILINE_OT_party_time)
 
 
 def register():

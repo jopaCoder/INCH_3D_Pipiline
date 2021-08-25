@@ -11,7 +11,10 @@ def upload(path, copypath):
         for entry in folder:
             if entry.is_dir() and entry.name != '__pycache__':
                 newpath = os.path.join(copypath, entry.name)
-                os.makedirs(newpath)
+                try:
+                    os.makedirs(newpath)
+                except FileExistsError:
+                    print('{} is exists'.format(entry.name))
                 upload(entry.path, newpath)
             elif  not entry.is_dir() and not entry.name.endswith('.txt'):
                 trgt_path = os.path.join(copypath, entry.name)
