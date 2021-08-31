@@ -23,3 +23,4 @@ def upload(path, copypath):
 
 
 upload(files_folder, update_folder)
+print('Update files is uploading')

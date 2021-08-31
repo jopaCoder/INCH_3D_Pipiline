@@ -4,6 +4,7 @@ from bpy.types import Panel, UIList
 
 from INCH_3D_Pipiline import project_operations
 
+
 class INCH_PIPILINE_UL_global_project_browser(UIList):
 
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
@@ -133,20 +134,19 @@ class INCH_PIPILINE_PT_MainUI(Panel):
 # endregion
 
 # region footer
-        foutrh_row = main_col.row()
-        foutrh_row.ui_units_y = 2
-        foutrh_row.scale_y = 2
-        foutrh_row.scale_x = 2
-        foutrh_row.operator("wm.call_menu", text='',
+        fourth_row = main_col.row()
+        fourth_row.ui_units_y = 2
+        fourth_row.scale_y = 2
+        fourth_row.scale_x = 2
+        fourth_row.operator("wm.call_menu", text='',
                             icon='PREFERENCES').name = "OBJECT_MT_simple_custom_menu"
         
-        foutrh_row.label(text=check_update())
-        foutrh_row.separator(factor=100.0)
-        foutrh_row.operator("wm.inch_save_main_file", text='', icon='BLENDER')
-        foutrh_row.operator("inch.iter_main_file", text='', icon='ADD')
-        foutrh_row.operator("inch.delete_file", text='', icon='TRASH')
+        fourth_row.label(text=check_update())
+        fourth_row.separator(factor=100.0)
+        fourth_row.operator("wm.inch_save_main_file", text='', icon='BLENDER')
+        fourth_row.operator("inch.iter_main_file", text='', icon='ADD')
+        fourth_row.operator("inch.delete_file", text='', icon='TRASH')
 # endregion
-
 
 class SettingsMenu(bpy.types.Menu):
     bl_label = "God mode"
@@ -160,7 +160,7 @@ class SettingsMenu(bpy.types.Menu):
 
         layout.operator("wm.inch_create_project_dialog", text='New Project')
         layout.operator("wm.import_project", text='Import Project')
-        layout.operator("inch.dummy", text='Manage projects')
+        layout.operator("wm.projects_manager", text='Manage projects')
        
         sepparator = '-'*30
         layout.label(text=sepparator)
@@ -175,6 +175,7 @@ class SettingsMenu(bpy.types.Menu):
         alert_row.alert = job_state.state
         alert_row.operator('inch.render_job', text=job_state.command, emboss=False, icon='ARMATURE_DATA')
         #layout.operator('inch.party_time', text='@')
+
 
 def register():
     bpy.utils.register_class(INCH_PIPILINE_UL_catalog_browser)

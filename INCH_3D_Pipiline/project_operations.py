@@ -21,61 +21,61 @@ def compute_project_local_path(server_path):
     return project_local_path
 
 
+def load_db(json_path):
+    project_dict = {}
+    try:
+        with open(json_path, 'r') as projects_db:
+            projects_dict = json.load(projects_db)
+        return projects_dict
+    except FileNotFoundError:
+        return project_dict
+    except json.decoder.JSONDecodeError:
+        return project_dict
+
+
+def write_db(json_path, projects_dict):
+    with open(json_path, 'w') as projects_db:
+        json.dump(projects_dict, projects_db, indent=2) 
+
+
+def check_for_matches(db, key):
+    for _key in db:
+        if _key == key:
+            return True
+    return False    
+
+
 def write_new_project(project_name, project_type, local_path, server_path):
-
-    local_json_path = project_system_paths.LOCAL_JSON_PATH
-    server_json_path = project_system_paths.SERVER_JSON_PATH
-
-    def load_db(json_path):
-        project_dict = {}
-        try:
-            with open(json_path, 'r') as projects_db:
-                projects_dict = json.load(projects_db)
-            return projects_dict
-        except FileNotFoundError:
-            return project_dict
-        except json.decoder.JSONDecodeError:
-            return project_dict
-    
-    def check_project_duplicates(db, key):
-            for _key in db:
-                if _key == key:
-                    return True
-            return False          
+    local_json_path = project_system_paths.LOCAL_PROJECT_DB_PATH
+    server_json_path = project_system_paths.SERVER_PROJECT_DB_PATH        
 
     def append_project(json_path):
         projects_dict = load_db(json_path)
-
-        if not check_project_duplicates(projects_dict, project_name):
+        if not check_for_matches(projects_dict, project_name):
             projects_dict[project_name] = {
                 'type': project_type, 'local_path': local_path, 'server_path': server_path}
-
-            with open(json_path, 'w') as projects_db:
-                json.dump(projects_dict, projects_db, indent=2)      
+            write_db(json_path, projects_dict) 
 
     append_project(local_json_path)
     append_project(server_json_path)
 
 
 def reload_projects_db():
+    local_db_path = project_system_paths.LOCAL_PROJECT_DB_PATH
+    archived_db_path = project_system_paths.ARCHIVED_PROJECT_DB_PATH
+    local_db = load_db(local_db_path)
+    archived_db = load_db(archived_db_path)
 
-    try:
-        with open(project_system_paths.LOCAL_JSON_PATH, 'r') as projects_db:
-            local_projects_dict = json.load(projects_db)
+    projects_collection = bpy.context.scene.inch_projects_collection
+    projects_collection.clear()
 
-        projects_collection = bpy.context.scene.inch_projects_collection
-        projects_collection.clear()
-
-        for project_key in local_projects_dict.keys():
+    for project_key in local_db.keys():
+        if not project_key in archived_db:
             collection_item = projects_collection.add()
             collection_item.name = project_key
-            collection_item.type = local_projects_dict[project_key]['type']
-            collection_item.local_path = local_projects_dict[project_key]['local_path']
-            collection_item.server_path = local_projects_dict[project_key]['server_path']
-    except json.decoder.JSONDecodeError:
-        print('Project_db is not readable')
-    except FileNotFoundError:
-        print('Project_db deleted or not created yet!')
+            collection_item.type = local_db[project_key]['type']
+            collection_item.local_path = local_db[project_key]['local_path']
+            collection_item.server_path = local_db[project_key]['server_path']
 
 
 def assing_project(self, context):
@@ -93,7 +93,7 @@ def assing_project(self, context):
         initialize_catalog()
 
     except KeyError:
-        pass
+        print('KeyError from: {}'.format(self))
 
 
 def generate_projects_list(self, context):
@@ -112,19 +112,11 @@ def generate_projects_list(self, context):
 
 
 def read_global_projects():
-    def load_json(path):
-        try:
-            with open(path, 'r') as projects_db:
-                return json.load(projects_db)
-        except FileNotFoundError:
-            show_message_box(path, 'Нет доступа к базе проектов')
-            return {}
-        except json.decoder.JSONDecodeError:
-            show_message_box(path, 'Нечитаемая база проектов')
-            return {}
+    local_db_path = project_system_paths.LOCAL_PROJECT_DB_PATH
+    server_db_path = project_system_paths.SERVER_PROJECT_DB_PATH  
     
-    local_projects_dict = load_json(project_system_paths.LOCAL_JSON_PATH)
-    global_projects_dict = load_json(project_system_paths.SERVER_JSON_PATH)
+    local_projects_dict = load_db(local_db_path)
+    global_projects_dict = load_db(server_db_path)
 
     global_projects = set(list(global_projects_dict.keys())) - set(list(local_projects_dict.keys()))
         
@@ -133,6 +125,28 @@ def read_global_projects():
                             'server_path': global_projects_dict[key]['server_path'],
                             'type': global_projects_dict[key]['type']
         }}
+
+
+def build_projects_manager_lists():
+    local_db_path = project_system_paths.LOCAL_PROJECT_DB_PATH
+    archived_db_path = project_system_paths.ARCHIVED_PROJECT_DB_PATH
+    
+    lived_db = load_db(local_db_path)
+    archived_db = load_db(archived_db_path)
+
+    colls = bpy.context.scene.inch_projects_manager_col
+    colls.archived_projects.clear()
+    colls.lived_projects.clear()
+    for key in lived_db.keys():
+        if key in archived_db.keys():
+            item = colls.archived_projects.add()
+        else:
+            item = colls.lived_projects.add()
+        
+        item.name = key
+        item.local_path = lived_db[key]['local_path']
+        item.server_path = lived_db[key]['server_path']
+        item.type = lived_db[key]['type']
 
 # endregion
 
@@ -526,21 +540,23 @@ def check_startup_conditions():
 def check_update():
     update_folder = project_system_paths.UPDATE_FOLDER
     abs_path = project_system_paths.ABS_PATH
-        
-    with os.scandir(update_folder) as it:
-        for entry in it:
-            if not entry.is_dir():
-                src_file = entry.path
-                trgt_file = os.path.join(abs_path, entry.name)
-                src_file_size = os.stat(src_file).st_size
-                try:
-                    trgt_file_size = os.stat(trgt_file).st_size
-                except FileNotFoundError:
-                    return "Вышло новое обновление!"
+    try:
+        with os.scandir(update_folder) as it:
+            for entry in it:
+                if not entry.is_dir():
+                    src_file = entry.path
+                    trgt_file = os.path.join(abs_path, entry.name)
+                    src_file_size = os.stat(src_file).st_size
+                    try:
+                        trgt_file_size = os.stat(trgt_file).st_size
+                    except FileNotFoundError:
+                        return "Вышло новое обновление!"
 
-                if src_file_size != trgt_file_size:
-                    return "Вышло новое обновление!"
-    return '8==э'
+                    if src_file_size != trgt_file_size:
+                        return "Вышло новое обновление!"
+        return '8==э'
+    except FileNotFoundError:
+        return 'VPN'
 
 
 def copy_file(file_from, file_to):

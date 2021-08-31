@@ -109,9 +109,9 @@ class INCH_PIPILINE_OT_open_file(Operator):
                 jopa.show_message_box(
                     'Сперва скопируй файл!', 'Не стоит запускать файлы с сервака')
         else:
-            cmd = 'cmd /c start "{}"'.format(self.file_path, '')
+            cmd = 'cmd /c "{}"'.format(self.file_path)
             args = shlex.split(cmd)
-            subprocess.run(args, shell=True)
+            subprocess.Popen(args, shell=True)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -282,6 +282,143 @@ class INCH_PIPILINE_OT_refresh_files_list(Operator):
 
 # region project
 
+class INCH_PIPILINE_OT_delete_project(Operator):
+    """Delete project"""
+
+    bl_idname = 'inch.delete_project'
+    bl_label = 'Delete Project'
+
+    key: StringProperty(default='Zalupa')
+
+    def execute(self, context):
+        archived_db_path = project_system_paths.ARCHIVED_PROJECT_DB_PATH
+        lived_db_path = project_system_paths.LOCAL_PROJECT_DB_PATH
+        archived_db = jopa.load_db(archived_db_path)
+        lived_db = jopa.load_db(lived_db_path)
+
+        for db in lived_db, archived_db:
+            if self.key in db:
+                db.pop(self.key)
+        
+        jopa.write_db(lived_db_path, lived_db)
+        jopa.write_db(archived_db_path, archived_db)
+
+        jopa.reload_projects_db()
+        jopa.build_projects_manager_lists()
+        jopa.assing_project(self, context)
+        jopa.initialize_catalog()
+        bpy.context.scene.inch_project_enum = bpy.context.scene.inch_projects_collection[0].name
+        bpy.context.scene.inch_projects_manager_col.lived_index = 0
+        return {"FINISHED"}
+
+
+class INCH_PIPILINE_OT_archive_project(Operator):
+    """Archive project"""
+
+    bl_idname = 'inch.archive_project'
+    bl_label = 'Archive Project'
+
+    lived_key: StringProperty(default='Zalupa')
+
+    def execute(self, context):
+        archived_db_path = project_system_paths.ARCHIVED_PROJECT_DB_PATH
+        lived_db_path = project_system_paths.LOCAL_PROJECT_DB_PATH
+        archived_db = jopa.load_db(archived_db_path)
+        lived_db = jopa.load_db(lived_db_path)
+
+
+        archived_db[self.lived_key] = {'local_path': lived_db[self.lived_key]['local_path'],
+                                 'server_path': lived_db[self.lived_key]['server_path'],
+                                 'type': lived_db[self.lived_key]['type']
+                                }      
+
+        jopa.write_db(archived_db_path, archived_db)
+        jopa.reload_projects_db()
+        jopa.build_projects_manager_lists()
+        jopa.assing_project(self, context)
+        jopa.initialize_catalog()
+        bpy.context.scene.inch_project_enum = bpy.context.scene.inch_projects_collection[0].name
+        bpy.context.scene.inch_projects_manager_col.lived_index = 0
+        return {"FINISHED"}
+
+
+class INCH_PIPILINE_OT_unarchive_project(Operator):
+    """Unarchive project"""
+
+    bl_idname = 'inch.unarchive_project'
+    bl_label = 'Unarchive Project'
+
+    archived_key: StringProperty(default='Zalupa')
+
+    def execute(self, context):
+        archived_db_path = project_system_paths.ARCHIVED_PROJECT_DB_PATH
+        lived_db_path = project_system_paths.LOCAL_PROJECT_DB_PATH
+        archived_db = jopa.load_db(archived_db_path)
+        lived_db = jopa.load_db(lived_db_path)
+
+        archived_db.pop(self.archived_key, None)  
+
+        jopa.write_db(archived_db_path, archived_db)
+        jopa.reload_projects_db()
+        jopa.build_projects_manager_lists()
+        jopa.assing_project(self, context)
+        jopa.initialize_catalog()
+        bpy.context.scene.inch_project_enum = bpy.context.scene.inch_projects_collection[0].name
+        bpy.context.scene.inch_projects_manager_col.archived_index = 0
+        return {"FINISHED"}
+
+
+class INCH_PIPILINE_OT_projects_manager(Operator):
+    """Projects manager"""
+
+    bl_idname = 'wm.projects_manager'
+    bl_label = 'Projects manager'
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        jopa.build_projects_manager_lists()
+        return context.window_manager.invoke_props_dialog(self, width=800)
+   
+    def draw(self, context):
+        colls = bpy.context.scene.inch_projects_manager_col
+        try:
+            lived_key = colls.lived_projects[colls.lived_index].name
+        except IndexError:
+            lived_key = ''
+        try:
+            archived_key = colls.archived_projects[colls.archived_index].name
+        except IndexError:
+            archived_key = ''
+
+        layout = self.layout
+        main_row = layout.row()
+
+        left_split = main_row.split(factor=0.47)
+        left_col = left_split.column()
+        left_col.label(text='Lived')
+        left_col.template_list('INCH_PIPILINE_UL_global_project_browser', 'Lived', colls,
+                             'lived_projects', colls, 'lived_index', rows=10)             
+        left_col.operator('inch.delete_project', text='', icon='TRASH').key = lived_key
+
+        right_split = left_split.split(factor=0.1)   
+
+        mid_col = right_split.column()
+        mid_col.label(text='')
+        mid_col.separator(factor=10)
+
+        mid_col.operator('inch.archive_project', text='>').lived_key=lived_key
+        mid_col.operator('inch.unarchive_project', text='<').archived_key=archived_key
+
+        mid_col.separator(factor=10)
+
+        right_col = right_split.column()
+        right_col.label(text='Archived')
+        right_col.template_list('INCH_PIPILINE_UL_global_project_browser', 'Archived', colls,
+                             'archived_projects', colls, 'archived_index', rows=10)
+        right_col.operator('inch.delete_project', text='', icon='TRASH').key = archived_key
+
 class INCH_PIPILINE_OT_import_project(Operator):
     """Import project from global db"""
 
@@ -323,6 +460,7 @@ class INCH_PIPILINE_OT_import_project(Operator):
         else:
             jopa.show_message_box('VPN?', 'Сервер не отвечает')
             return {"FINISHED"}
+    
     def draw(self, context):
         layout = self.layout
 
@@ -562,11 +700,11 @@ class INCH_PIPILINE_OT_save_main_file_dialog(Operator):
         col_r.label(text="Scene_Lavina_Animation")
         col_r.label(text="Prop_Dildo_Modeling")
 
-        if bpy.data.filepath != '': self.main_file_name = os.path.basename(bpy.data.filepath)[:-9]
-
         layout.prop(self, 'main_file_name', text='')
 
     def invoke(self, context, event):
+        if bpy.data.filepath != '': 
+            self.main_file_name = os.path.basename(bpy.data.filepath)[:-9]
         return context.window_manager.invoke_props_dialog(self, width=400)
 
 
@@ -719,7 +857,7 @@ class INCH_PIPILINE_OT_update(Operator):
         def download_updates(path, copypath):
             with os.scandir(path) as folder:
                 for entry in folder:
-                    if entry.is_dir() and entry.name != '__pycache__':
+                    if entry.is_dir() and entry.name != '__pycache__' and entry.name != 'Thumbs.db':
                         newpath = os.path.join(copypath, entry.name)
                         try:
                             os.makedirs(newpath)
@@ -775,7 +913,7 @@ class INCH_PIPILINE_OT_party_time(Operator):
             self.isPlaying = True
             print('Its party time!')
         return{"FINISHED"}
-        
+                
 
 classes = (INCH_PIPILINE_OT_dummy,
            INCH_PIPILINE_OT_iter_main_file,
@@ -797,7 +935,11 @@ classes = (INCH_PIPILINE_OT_dummy,
            INCH_PIPILINE_OT_copy_render_job,
            INCH_PIPILINE_OT_update,
            INCH_PIPILINE_OT_approve_dialog,
-           INCH_PIPILINE_OT_party_time)
+           INCH_PIPILINE_OT_party_time,
+           INCH_PIPILINE_OT_projects_manager,
+           INCH_PIPILINE_OT_archive_project,
+           INCH_PIPILINE_OT_unarchive_project,
+           INCH_PIPILINE_OT_delete_project)
 
 
 def register():

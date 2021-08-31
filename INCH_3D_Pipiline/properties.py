@@ -6,7 +6,6 @@ from . import project_operations
 from bpy.props import StringProperty, CollectionProperty, IntProperty, BoolProperty, EnumProperty, PointerProperty
 from bpy.types import PropertyGroup
 
-
 class CatalogListItem(PropertyGroup):
 
     name: StringProperty(
@@ -114,41 +113,46 @@ class CopyJobState(PropertyGroup):
     state: BoolProperty(default=False)
 
 
+class ProjectsManagerLists(PropertyGroup):
+    lived_projects: CollectionProperty(type=ProjectListItem)
+    lived_index: IntProperty(default=0)
+    archived_projects: CollectionProperty(type=ProjectListItem)
+    archived_index: IntProperty(default=0)
+
+classes =  (FileListItem,
+            ProjectListItem,
+            CatalogListItem,
+            CatalogListHandler,
+            SyncCheckBox,
+            CopyJobState,
+            ProjectsManagerLists
+        )
+
 def register():
-    bpy.utils.register_class(FileListItem)
-    bpy.utils.register_class(ProjectListItem)
-    bpy.utils.register_class(CatalogListItem)
-    bpy.utils.register_class(CatalogListHandler)
-    bpy.utils.register_class(SyncCheckBox)
-    bpy.utils.register_class(CopyJobState)
+    for cl in classes:
+        bpy.utils.register_class(cl)
 
     bpy.types.Scene.inch_inch_copy_job_state = PointerProperty(type=CopyJobState)
-
     bpy.types.Scene.inch_catalogs = CollectionProperty(type=CatalogListHandler)
-
     # список файлов
     bpy.types.Scene.inch_files_list = CollectionProperty(type=FileListItem)
     bpy.types.Scene.inch_list_index = IntProperty(
         name="Index for my_list", default=0)
-
     # список проектов
-    bpy.types.Scene.inch_projects_collection = CollectionProperty(
-        type=ProjectListItem)
-    bpy.types.Scene.inch_project_enum = EnumProperty(
-        items=project_operations.generate_projects_list, update=project_operations.assing_project)
-
+    bpy.types.Scene.inch_projects_manager_col = PointerProperty(type=ProjectsManagerLists)
+    bpy.types.Scene.inch_projects_collection = CollectionProperty(type=ProjectListItem)
+    bpy.types.Scene.inch_project_enum = EnumProperty(items=project_operations.generate_projects_list, 
+                                                     update=project_operations.assing_project
+                                                    )
     bpy.types.Scene.inch_current_project = PointerProperty(
         type=ProjectListItem)
     bpy.types.Scene.inch_current_folder = PointerProperty(
         type=ProjectListItem)
 
 def unregister():
-    bpy.utils.unregister_class(FileListItem)
-    bpy.utils.unregister_class(ProjectListItem)
-    bpy.utils.unregister_class(CatalogListItem)
-    bpy.utils.unregister_class(CatalogListHandler)
-    bpy.utils.unregister_class(SyncCheckBox)
-    bpy.utils.unregister_class(CopyJobState)
+    for cl in classes:
+        bpy.utils.unregister_class(cl)
+
 
     del bpy.types.Scene.inch_inch_copy_job_state
     del bpy.types.Scene.inch_catalogs
