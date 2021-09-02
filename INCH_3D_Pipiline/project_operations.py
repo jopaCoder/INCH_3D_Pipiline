@@ -4,6 +4,7 @@ import glob
 import shutil
 import subprocess
 import shlex
+import threading
 
 import bpy
 
@@ -564,6 +565,7 @@ def copy_file(file_from, file_to):
     def copy():
         try:
             shutil.copy2(file_from, file_to)
+            print('Copying {}'.format(file_from))
         except FileNotFoundError:
             show_message_box(file_to, 'Файл не существует или к нему нет доступа')
 
@@ -576,7 +578,8 @@ def copy_file(file_from, file_to):
     if os.path.isfile(file_to):
         src_mtime = os.stat(file_from).st_mtime
         dst_mtime = os.stat(file_to).st_mtime
-        copy()
+        t = threading.Thread(name='copying', target=copy)
+        t.start()
 
         if src_mtime < dst_mtime:          
             show_message_box('На более старый, дебил...', 'Файл заменен')
@@ -585,5 +588,5 @@ def copy_file(file_from, file_to):
         else:
             show_message_box('Ты ничего не потерял, но и не приобрел', 'Файл заменен')
     else:
-        copy()
-    
+        t = threading.Thread(name='copying', target=copy)
+        t.start()
