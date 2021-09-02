@@ -6,7 +6,7 @@ import shlex
 import aud
 
 from bpy.types import Operator
-from bpy.props import BoolProperty, CollectionProperty, FloatProperty, IntProperty, StringProperty, EnumProperty
+from bpy.props import BoolProperty, CollectionProperty, IntProperty, StringProperty, EnumProperty
 
 from .properties import SyncCheckBox, ProjectListItem
 from . import project_operations as jopa
@@ -191,10 +191,10 @@ class INCH_PIPILINE_OT_copy_file(Operator):
  
         if self.to_server:
             jopa.copy_file(file_from, file_to)
-            bpy.ops.scene.single_progress('EXEC_DEFAULT', src=file_from, dst=file_to) 
         else:
             jopa.copy_file(file_to, file_from)
-            bpy.ops.scene.single_progress('EXEC_DEFAULT', src=file_to, dst=file_from)
+
+        jopa.refresh_files_list()
 
         return {'FINISHED'}
 
@@ -857,14 +857,14 @@ class INCH_PIPILINE_OT_update(Operator):
         def download_updates(path, copypath):
             with os.scandir(path) as folder:
                 for entry in folder:
-                    if entry.is_dir() and entry.name != '__pycache__':
+                    if entry.is_dir() and entry.name != '__pycache__' and entry.name != 'Thumbs.db':
                         newpath = os.path.join(copypath, entry.name)
                         try:
                             os.makedirs(newpath)
                         except FileExistsError:
                             print('{} is exists'.format(entry.name))
                         download_updates(entry.path, newpath)
-                    elif  not entry.is_dir() and not entry.name.endswith('.txt') and entry.name != 'Thumbs.db':
+                    elif  not entry.is_dir() and not entry.name.endswith('.txt'):
                         trgt_path = os.path.join(copypath, entry.name)
                         shutil.copy2(entry.path, trgt_path)
         
@@ -915,50 +915,6 @@ class INCH_PIPILINE_OT_party_time(Operator):
         return{"FINISHED"}
                 
 
-class INCH_PIPILINE_OT_single_progress(Operator):
-    """Single progress of copying file"""
-    bl_idname = "scene.single_progress"
-    bl_label = "Single progress"
-
-    _timer = None
-    src: StringProperty(default='zalupa')
-    dst: StringProperty(default='zalupa')
-
-    initial_size: StringProperty()
-
-    def modal(self, context, event):        
-        if event.type == 'TIMER':
-            if not os.path.exists(self.dst):
-                progress = 0
-            else:
-                progress = round(float(os.path.getsize(self.dst))/(1024*1024))
-                scene = bpy.context.scene
-                scene.inch_files_list[scene.inch_list_index].file_size = '{}mb\\{}'.format(progress, self.initial_size)
-                print('pre_draw')
-                jopa.redraw_ui()
-                print('post_draw')
-
-                if os.path.getsize(self.src) == os.path.getsize(self.dst) or event.type in {'ESC'}:
-                    jopa.refresh_files_list()
-                    jopa.redraw_ui()
-                    return {"CANCELLED"}
-        
-        return {'PASS_THROUGH'}
-
-    def execute(self, context):    
-        scene = bpy.context.scene
-        self.initial_size = scene.inch_files_list[scene.inch_list_index].file_size
-
-        wm = context.window_manager
-        self._timer = wm.event_timer_add(0.1, window=context.window)
-        wm.modal_handler_add(self)
-        return {'RUNNING_MODAL'}
-
-    def cancel(self, context):
-        wm = context.window_manager
-        wm.event_timer_remove(self._timer)
-
-
 classes = (INCH_PIPILINE_OT_dummy,
            INCH_PIPILINE_OT_iter_main_file,
            INCH_PIPILINE_OT_save_main_file_dialog,
@@ -983,8 +939,7 @@ classes = (INCH_PIPILINE_OT_dummy,
            INCH_PIPILINE_OT_projects_manager,
            INCH_PIPILINE_OT_archive_project,
            INCH_PIPILINE_OT_unarchive_project,
-           INCH_PIPILINE_OT_delete_project,
-           INCH_PIPILINE_OT_single_progress)
+           INCH_PIPILINE_OT_delete_project)
 
 
 def register():
