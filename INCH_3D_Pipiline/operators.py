@@ -4,9 +4,10 @@ import shutil
 import subprocess
 import shlex
 import aud
+import threading
 
 from bpy.types import Operator
-from bpy.props import BoolProperty, CollectionProperty, IntProperty, StringProperty, EnumProperty
+from bpy.props import BoolProperty, CollectionProperty, FloatProperty, IntProperty, StringProperty, EnumProperty
 
 from .properties import SyncCheckBox, ProjectListItem
 from . import project_operations as jopa
@@ -173,30 +174,6 @@ class INCH_PIPILINE_OT_generate_files_list(Operator):
             return {'FINISHED'}
         else:
             return self.execute(context)
-
-
-class INCH_PIPILINE_OT_copy_file(Operator):
-    """Copy file to server or backward"""
-
-    bl_label = "Copy file"
-    bl_idname = "inch.copy_file"
-
-    to_server: BoolProperty()
-
-    def execute(self, context):
-        index = bpy.context.scene.inch_list_index
-
-        file_from = bpy.context.scene.inch_files_list[index].local_path
-        file_to = bpy.context.scene.inch_files_list[index].server_path
- 
-        if self.to_server:
-            jopa.copy_file(file_from, file_to)
-        else:
-            jopa.copy_file(file_to, file_from)
-
-        jopa.refresh_files_list()
-
-        return {'FINISHED'}
 
 
 class INCH_PIPILINE_OT_copy_file_path(Operator):
@@ -857,14 +834,14 @@ class INCH_PIPILINE_OT_update(Operator):
         def download_updates(path, copypath):
             with os.scandir(path) as folder:
                 for entry in folder:
-                    if entry.is_dir() and entry.name != '__pycache__' and entry.name != 'Thumbs.db':
+                    if entry.is_dir() and entry.name != '__pycache__':
                         newpath = os.path.join(copypath, entry.name)
                         try:
                             os.makedirs(newpath)
                         except FileExistsError:
                             print('{} is exists'.format(entry.name))
                         download_updates(entry.path, newpath)
-                    elif  not entry.is_dir() and not entry.name.endswith('.txt'):
+                    elif  not entry.is_dir() and not entry.name.endswith('.txt') and entry.name != 'Thumbs.db':
                         trgt_path = os.path.join(copypath, entry.name)
                         shutil.copy2(entry.path, trgt_path)
         
@@ -915,6 +892,65 @@ class INCH_PIPILINE_OT_party_time(Operator):
         return{"FINISHED"}
                 
 
+class INCH_PIPILINE_OT_copy_file(Operator):
+    """Copy file to server or backward"""
+    bl_label = "Copy file"
+    bl_idname = "inch.copy_file"
+    
+    to_server: BoolProperty()
+
+    _timer = None
+
+    src: StringProperty(default='zalupa')
+    dst: StringProperty(default='zalupa')
+
+    initial_size: StringProperty()
+
+    def modal(self, context, event):        
+        if event.type == 'TIMER':
+            if not os.path.exists(self.dst):
+                progress = 0
+            else:
+                progress = round(float(os.path.getsize(self.dst))/(1024*1024))
+                scene = bpy.context.scene
+                scene.inch_files_list[scene.inch_list_index].file_size = '{}mb\\{}'.format(progress, self.initial_size)
+                jopa.redraw_ui()
+                
+                if os.path.getsize(self.src) == os.path.getsize(self.dst) or event.type in {'ESC'}:
+                    jopa.refresh_files_list()
+                    jopa.redraw_ui()
+                    print('Files is equal')
+                    return {"CANCELLED"}     
+
+        return {'PASS_THROUGH'}
+
+    def execute(self, context):   
+        scene = bpy.context.scene
+        self.initial_size = scene.inch_files_list[scene.inch_list_index].file_size
+        index = scene.inch_list_index
+ 
+        if self.to_server:
+            self.src = scene.inch_files_list[index].local_path
+            self.dst = scene.inch_files_list[index].server_path
+            t = threading.Thread(name='copying', target=jopa.copy_file, args=(self.src, self.dst))
+            t.start()
+        else:
+            self.dst = scene.inch_files_list[index].local_path
+            self.src = scene.inch_files_list[index].server_path
+            t = threading.Thread(name='copying', target=jopa.copy_file, args=(self.src, self.dst))
+            t.start()
+
+        wm = context.window_manager
+        self._timer = wm.event_timer_add(0.1, window=context.window)
+        wm.modal_handler_add(self)
+        return {'RUNNING_MODAL'}
+
+    def cancel(self, context):
+        print('Finished')
+        wm = context.window_manager
+        wm.event_timer_remove(self._timer)
+
+
 classes = (INCH_PIPILINE_OT_dummy,
            INCH_PIPILINE_OT_iter_main_file,
            INCH_PIPILINE_OT_save_main_file_dialog,
@@ -939,7 +975,8 @@ classes = (INCH_PIPILINE_OT_dummy,
            INCH_PIPILINE_OT_projects_manager,
            INCH_PIPILINE_OT_archive_project,
            INCH_PIPILINE_OT_unarchive_project,
-           INCH_PIPILINE_OT_delete_project)
+           INCH_PIPILINE_OT_delete_project,
+           )
 
 
 def register():
